@@ -19,7 +19,7 @@ COVERS_JSON = os.path.join(COVERS_DIR, "covers.json")
 
 # ----- админ конфиг из .env -----
 ADMIN_USER = os.getenv("ADMIN_USER", "admin")
-ADMIN_PASS = os.getenv("ADMIN_PASS", "admin")
+ADMIN_PASS = os.getenv("ADMIN_PASS", "neSko567___2341")
 
 # ----- убедимся, что папка есть -----
 os.makedirs(COVERS_DIR, exist_ok=True)
