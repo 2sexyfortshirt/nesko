@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>🎛 Админ-панель</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #111; color: #eee; padding: 20px; }
+    h1 { text-align:center; }
+    .panel { background:#1b1b1b; padding:20px; border-radius:12px; width:600px; margin:0 auto 30px; }
+    label { display:block; margin-top:10px; }
+    input { width:100%; padding:10px; margin-top:5px; border-radius:8px; border:none; background:#333; color:#eee; }
+    button { background:#09f; color:#fff; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; margin-top:15px; }
+    table { width:100%; border-collapse:collapse; margin-top:20px; }
+    th, td { padding:10px; border-bottom:1px solid #333; text-align:left; }
+    .delete-btn { background:#d62828; padding:6px 10px; border:none; color:#fff; border-radius:6px; cursor:pointer; }
+    .topline { display:flex; justify-content:space-between; align-items:center; max-width:800px; margin:0 auto 20px; }
+  </style>
+</head>
+<body>
+  <div class="topline">
+    <h1>🎛 Админ-панель</h1>
+    <div>
+      <a href="{{ url_for('logout') }}" style="color:#09f; text-decoration:none;">Выйти</a>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, msg in messages %}
+        <p style="color: {{ 'lime' if category=='success' else 'tomato' }}">{{ msg }}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <div class="panel">
+    <h2>➕ Добавить кавер</h2>
+    <form method="post" enctype="multipart/form-data">
+      <label>Исполнитель:</label>
+      <input type="text" name="artist" required>
+
+      <label>Жанр:</label>
+      <input type="text" name="genre" required>
+
+      <label>Цена ($):</label>
+      <input type="number" step="0.01" name="price" required>
+
+      <label>Файл (MP3):</label>
+      <input type="file" name="file" accept=".mp3" required>
+
+      <button type="submit">Добавить кавер</button>
+    </form>
+  </div>
+
+  <div style="max-width:800px; margin:0 auto;">
+    <h2>📀 Загруженные каверы:</h2>
+    <table>
+      <tr>
+        <th>Исполнитель</th>
+        <th>Файл</th>
+        <th>Жанр</th>
+        <th>Цена</th>
+        <th></th>
+      </tr>
+      {% for c in covers %}
+      <tr>
+        <td>{{ c.artist }}</td>
+        <td>{{ c.filename }}</td>
+        <td>{{ c.genre }}</td>
+        <td>{{ c.price / 100 }}$</td>
+        <td>
+          <form action="{{ url_for('delete_cover', filename=c.filename) }}" method="post" style="display:inline;">
+            <button class="delete-btn" onclick="return confirm('Удалить?')">✖</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</body>
+</html>

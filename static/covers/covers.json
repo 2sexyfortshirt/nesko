@@ -1,0 +1,26 @@
+[
+  {
+    "filename": "2Pac, The Outlawz - Hit 'Em Up (Single Version).mp3",
+    "artist": "2Pac",
+    "genre": "Rap",
+    "price": 200
+  },
+  {
+    "filename": "2Pac, 50 Cent - The Realist Killaz.mp3",
+    "artist": "2Pac feat 50Cent",
+    "genre": "Rap",
+    "price": 250
+  },
+  {
+    "filename": "21 Savage, Metro Boomin - Runnin.mp3",
+    "artist": "21Savage",
+    "genre": "Rap",
+    "price": 300
+  },
+  {
+    "filename": "A$AP Rocky - Fashion Killa.mp3",
+    "artist": "A$AP Rocky - Fashion Killa",
+    "genre": "Rap",
+    "price": 200
+  }
+]

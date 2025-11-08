@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Вход — Админ</title>
+  <style>
+    body { background:#111; color:#eee; font-family: Arial, sans-serif; padding:30px; }
+    .box { max-width:400px; margin:40px auto; background:#1a1a1a; padding:20px; border-radius:10px; }
+    input { width:100%; padding:10px; margin:8px 0; border-radius:6px; border:none; background:#222; color:#eee; }
+    button { width:100%; padding:10px; border:none; border-radius:6px; background:#09f; color:#fff; cursor:pointer; }
+    .msg { margin-bottom:10px; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Вход в админку</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for cat, msg in messages %}
+          <div class="msg" style="color: {{ 'lime' if cat=='success' else 'tomato' }}">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="post">
+      <input name="username" placeholder="Логин" required>
+      <input name="password" placeholder="Пароль" type="password" required>
+      <button type="submit">Войти</button>
+    </form>
+  </div>
+</body>
+</html>
