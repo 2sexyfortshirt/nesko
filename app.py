@@ -3,11 +3,11 @@ from flask import (
     request, flash, jsonify, session, abort
 )
 import os, json, uuid
-from dotenv import load_dotenv
+
 from flask import send_from_directory
 from functools import wraps
 
-load_dotenv()
+
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET", "supersecret_local_change_me")
