@@ -196,7 +196,8 @@
         </form>
 
         <!-- Аудиоплеер -->
-        <audio src="{{ cover.audio_url }}" class="audio-player"></audio>
+        <audio src="{{ url_for('static', filename='covers/' + cover.filename) }}" class="audio-player"></audio>
+
         <div class="visualizer">
           <div class="bar"></div>
           <div class="bar"></div>
