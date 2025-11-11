@@ -13,7 +13,6 @@ body {
   color: #eaeaea;
   padding: 20px;
   min-height: 100vh;
-  margin: 0;
 }
 
 h1 {
@@ -27,13 +26,13 @@ h1 {
   -webkit-text-fill-color: transparent;
 }
 
+/* Форма поиска */
 form {
   display: flex;
   gap: 10px;
-  margin-bottom: 25px;
+  margin: 0 auto 25px;
   max-width: 600px;
 }
-
 input[type="text"] {
   flex: 1;
   padding: 12px 16px;
@@ -49,7 +48,6 @@ input[type="text"]:focus {
   border-color: #b300ff;
   box-shadow: 0 0 10px #b300ff;
 }
-
 button[type="submit"] {
   background: linear-gradient(135deg, #8a00ff, #ff00e6);
   color: white;
@@ -65,39 +63,34 @@ button[type="submit"]:hover {
   transform: scale(1.07);
   box-shadow: 0 0 12px #ff00e6;
 }
-.container {
+
+/* Колонки */
+.columns {
   display: flex;
-  gap: 30px; /* расстояние между колонками */
+  gap: 20px;
   align-items: flex-start;
 }
 
-/* Левая колонка — каверы */
+/* Левая колонка — поиск + аудио */
 .left-column {
   flex: 2 1 500px;
-  max-width: 700px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-height: 80vh;       /* ограничение высоты */
-  overflow-y: auto;       /* вертикальная прокрутка */
-  padding-right: 10px;
+  gap: 15px;
 }
 
 /* Правая колонка — видео */
 .right-column {
-  flex: 1 1 300px;
+  flex: 1 1 250px;
   max-width: 350px;
   display: flex;
   flex-direction: column;
   gap: 15px;
   max-height: 80vh;
-  overflow-y: auto;       /* вертикальная прокрутка */
-  position: sticky;       /* закрепление при скролле */
-  top: 20px;              /* отступ сверху */
-  margin-left: auto;       /* сдвигает колонку вправо */
+  overflow-y: auto;
 }
 
-/* Каверы */
+/* Аудио блок */
 .cover {
   background: rgba(255, 255, 255, 0.05);
   padding: 18px;
@@ -111,7 +104,6 @@ button[type="submit"]:hover {
   border-color: #9e00ff;
   box-shadow: 0 0 12px #9e00ff;
 }
-
 .artist { font-weight: 600; font-size: 18px; color: #ffdfff; }
 .filename { color: #b8b8ff; }
 .genre { color: #7efff5; font-size: 14px; }
@@ -161,10 +153,9 @@ button[type="submit"]:hover {
 }
 
 /* Видео */
-.right-column video {
+video {
   width: 100%;
-  border-radius: 10px;
-  display: block;
+  border-radius: 12px;
 }
 
 /* Модалка покупки */
@@ -196,25 +187,19 @@ button[type="submit"]:hover {
   cursor: pointer;
 }
 
+/* Пустой результат */
 p { text-align: center; font-size: 16px; margin-top: 20px; color: #ff99cc; }
-/* Мобильная адаптация */
-@media (max-width: 900px) {
-  .container {
+
+/* Адаптив для мобильных */
+@media (max-width: 768px) {
+  .columns {
     flex-direction: column;
-    gap: 20px;
   }
-
-  .left-column, .right-column {
+  .right-column {
     max-width: 100%;
-    flex: 1 1 100%;
-    position: static; /* убираем sticky на мобильных */
-    max-height: none; /* высота подстраивается под контент */
-    overflow-y: visible; /* вертикальная прокрутка всей страницы */
   }
-
-  .right-column video {
-    width: 100%;  /* видео растягивается по ширине колонки */
-    height: auto; /* сохраняем пропорции */
+  video {
+    max-height: 200px;
   }
 }
 </style>
@@ -227,47 +212,40 @@ p { text-align: center; font-size: 16px; margin-top: 20px; color: #ff99cc; }
   <button type="submit">🔍</button>
 </form>
 
-<div class="container">
+<div class="columns">
   <div class="left-column">
     {% if covers %}
-      <h2 style="text-align:center; margin-top:0;">🎵 Музыка</h2>
+      <h2>🎵 Музыка</h2>
       {% for cover in covers %}
-        <div class="cover">
-          <strong class="artist">{{ cover.artist }}</strong>
-          <span class="filename">{{ cover.filename }}</span><br>
-          <span class="genre">{{ cover.genre }}</span><br>
-
-          <button class="buy-btn" data-filename="{{ cover.filename }}">💳 Купить за ${{ cover.price / 100 }}</button>
-
-          <audio src="/stream/{{ cover.filename }}" class="audio-player"></audio>
-
-          <div class="progress-container">
-            <span class="current-time">0:00</span>
-            <input type="range" class="progress-bar" value="0" min="0" max="30" step="0.1">
-            <span class="duration">0:00</span>
-          </div>
-          <button class="play-btn">▶️ Play 30s</button>
+      <div class="cover">
+        <strong class="artist">{{ cover.artist }}</strong>
+        <span class="filename">{{ cover.filename }}</span><br>
+        <span class="genre">{{ cover.genre }}</span><br>
+        <button class="buy-btn" data-filename="{{ cover.filename }}">💳 Купить за ${{ cover.price / 100 }}</button>
+        <audio src="{{ cover.url }}" class="audio-player"></audio>
+        <div class="progress-container">
+          <span class="current-time">0:00</span>
+          <input type="range" class="progress-bar" value="0" min="0" max="30" step="0.1">
+          <span class="duration">0:00</span>
         </div>
+        <button class="play-btn">▶️ Play 30s</button>
+      </div>
       {% endfor %}
     {% endif %}
   </div>
 
   <div class="right-column">
     {% if videos %}
-      <h2 style="text-align:center; margin-top:0;">🎬 Видео</h2>
+      <h2>🎬 Видео</h2>
       {% for video in videos %}
-        <div class="cover">
-          <strong class="artist">{{ video.title }}</strong><br>
-          <video src="{{ video.url }}" controls></video>
-        </div>
+      <div class="cover">
+        <strong class="artist">{{ video.title }}</strong>
+        <video src="{{ video.url }}" controls></video>
+      </div>
       {% endfor %}
     {% endif %}
   </div>
 </div>
-
-{% if not covers and not videos %}
-  <p>😕 Ничего не найдено по запросу "{{ query }}"</p>
-{% endif %}
 
 <div class="modal" id="buy-modal">
   <div class="modal-content">
