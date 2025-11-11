@@ -2,3 +2,4 @@ Flask==3.0.3
 stripe==10.0.0
 gunicorn==21.2.0
 boto3==1.28.0
+python-dotenv==1.1.1
