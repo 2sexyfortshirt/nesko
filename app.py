@@ -11,6 +11,7 @@ from flask import (
     Flask, render_template, redirect, url_for, send_file,
     request, flash, jsonify, session, abort, Response
 )
+from flask_cors import CORS
 from spaces_service import get_presigned_view_url, upload_file, delete_object, list_media
 
 import os, json, uuid
@@ -29,6 +30,7 @@ if not os.path.exists(VIDEOS_JSON):
 
 
 app = Flask(__name__)
+CORS(app)
 app.secret_key = os.getenv("FLASK_SECRET", "supersecret_local_change_me")
 
 # ----- пути -----
@@ -86,7 +88,9 @@ def index():
 
 # одноразовые токены в памяти
 download_tokens = {}
+from flask_cors import cross_origin
 @app.route("/stream/<path:key>")
+@cross_origin()
 def stream(key):
     try:
         obj = client.get_object(Bucket=SPACES_BUCKET, Key=key)
