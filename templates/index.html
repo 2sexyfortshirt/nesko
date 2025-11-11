@@ -237,17 +237,24 @@ p { text-align: center; font-size: 16px; margin-top: 20px; color: #ff99cc; }
     {% endif %}
   </div>
 
-  <div class="right-column">
-    {% if videos %}
-      <h2>🎬 Видео</h2>
-      {% for video in videos %}
-      <div class="cover">
-        <strong class="artist">{{ video.title }}</strong>
-        <video src="{{ video.url }}" controls></video>
-      </div>
-      {% endfor %}
-    {% endif %}
-  </div>
+ <div class="right-column">
+  {% if videos %}
+    <h2>🎬 Видео</h2>
+    {% for video in videos %}
+    <div class="cover">
+
+      <video
+        src="{{ video.url }}"
+        controls
+        playsinline
+        preload="metadata"
+        style="width:100%; border-radius:12px;"
+      >
+        Ваш браузер не поддерживает видео.
+      </video>
+    </div>
+    {% endfor %}
+  {% endif %}
 </div>
 
 <div class="modal" id="buy-modal">
@@ -313,6 +320,7 @@ document.addEventListener("DOMContentLoaded", () => {
           fragmentTimeout = setTimeout(stopAudio, 30000);
         } else stopAudio();
       });
+
 
       progressBar.addEventListener("input", () => {
         audio.currentTime = parseFloat(progressBar.value);
