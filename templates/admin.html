@@ -1,80 +1,243 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>🎛 Админ-панель</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #111; color: #eee; padding: 20px; }
-    h1 { text-align:center; }
-    .panel { background:#1b1b1b; padding:20px; border-radius:12px; width:600px; margin:0 auto 30px; }
-    label { display:block; margin-top:10px; }
-    input { width:100%; padding:10px; margin-top:5px; border-radius:8px; border:none; background:#333; color:#eee; }
-    button { background:#09f; color:#fff; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; margin-top:15px; }
-    table { width:100%; border-collapse:collapse; margin-top:20px; }
-    th, td { padding:10px; border-bottom:1px solid #333; text-align:left; }
-    .delete-btn { background:#d62828; padding:6px 10px; border:none; color:#fff; border-radius:6px; cursor:pointer; }
-    .topline { display:flex; justify-content:space-between; align-items:center; max-width:800px; margin:0 auto 20px; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Админ — Медиа</title>
+<style>
+  :root{
+    --bg:#040406;
+    --panel:#0b0c0f;
+    --muted:#9aa3b2;
+    --accent:#00d4ff;
+    --accent-2:#4c8cff;
+    --danger:#ff4d4f;
+    --card:#0f1113;
+    --radius:12px;
+    --glass: rgba(255,255,255,0.02);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: Inter, Roboto, Arial, sans-serif;
+    background: linear-gradient(180deg,#030305 0%, #071018 100%);
+    color:#e6eef6; -webkit-font-smoothing:antialiased; min-height:100vh;
+  }
+
+  /* layout */
+  .app {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 30px;
+    max-width:1200px; margin:28px auto; padding:24px;
+  }
+
+  /* sidebar */
+  .sidebar {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius: var(--radius);
+    padding:18px;
+    height: calc(100vh - 96px);
+    position:sticky; top:20px;
+    box-shadow: 0 6px 24px rgba(2,6,23,0.6);
+  }
+  .brand { display:flex; gap:12px; align-items:center; margin-bottom:18px }
+  .logo { width:44px; height:44px; border-radius:10px; background: linear-gradient(135deg,var(--accent),var(--accent-2)); display:flex; align-items:center; justify-content:center; font-weight:700 }
+  .brand h2{ margin:0; font-size:16px; letter-spacing:0.2px }
+  .nav { margin-top:18px }
+  .nav a{ display:block; color:var(--muted); text-decoration:none; padding:10px 8px; border-radius:8px; margin-bottom:6px }
+  .nav a.active, .nav a:hover{ color:white; background: linear-gradient(90deg, rgba(0,212,255,0.06), rgba(76,140,255,0.03)); box-shadow: inset 0 0 0 1px rgba(76,140,255,0.04) }
+
+  /* main */
+  .main { }
+  .top {
+    display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;
+  }
+  .top .title { font-size:20px; font-weight:600 }
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:12px; padding:18px; margin-bottom:18px; box-shadow: 0 6px 20px rgba(3,7,18,0.6);
+  }
+
+  /* form */
+  .row { display:flex; gap:12px; flex-wrap:wrap }
+  label { font-size:13px; color:var(--muted); display:block; margin-bottom:6px }
+  input[type="text"], input[type="number"], select, input[type="file"]{
+    width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.03);
+    background:var(--card); color:#e9f2fb;
+  }
+  .two { flex:1 1 48% }
+  .full { flex:1 1 100% }
+  button.primary {
+    background: linear-gradient(90deg,var(--accent),var(--accent-2));
+    color:#021627; border:none; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:600;
+  }
+  button.danger {
+    background:transparent;color:var(--danger); border:1px solid rgba(255,77,79,0.12); padding:8px 12px; border-radius:8px; cursor:pointer;
+  }
+
+  /* tables */
+  table { width:100%; border-collapse:collapse; font-size:14px; margin-top:8px; table-layout:fixed; word-break:break-all; }
+  th, td { text-align:left; padding:10px 8px; border-bottom:1px solid rgba(255,255,255,0.03) }
+  th { color:var(--muted); font-size:13px; font-weight:600 }
+  td small a{ color:var(--accent); word-break:break-word; font-size:12px; }
+
+  /* responsive */
+  @media (max-width:980px){
+    .app{ grid-template-columns: 1fr; padding:12px }
+    .sidebar{ position:relative; height:auto; }
+  }
+</style>
 </head>
 <body>
-  <div class="topline">
-    <h1>🎛 Админ-панель</h1>
-    <div>
-      <a href="{{ url_for('logout') }}" style="color:#09f; text-decoration:none;">Выйти</a>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">N</div>
+      <div>
+        <h2>nesko admin</h2>
+        <div style="font-size:12px; color:var(--muted)">управление музыкой и видео</div>
+      </div>
     </div>
-  </div>
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, msg in messages %}
-        <p style="color: {{ 'lime' if category=='success' else 'tomato' }}">{{ msg }}</p>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+    <nav class="nav">
+      <a class="active" href="#upload" onclick="showTab('upload')">➕ Загрузить</a>
+      <a href="#audios" onclick="showTab('audios')">🎵 Музыка</a>
+      <a href="#videos" onclick="showTab('videos')">🎬 Видео</a>
+      <a href="{{ url_for('logout') }}" style="margin-top:12px; color:var(--muted); display:block">Выйти</a>
+    </nav>
 
-  <div class="panel">
-    <h2>➕ Добавить кавер</h2>
-    <form method="post" enctype="multipart/form-data">
-      <label>Исполнитель:</label>
-      <input type="text" name="artist" required>
+    <div style="margin-top:18px; font-size:13px; color:var(--muted)">
+      <div><strong>Акцент:</strong> <span style="color:var(--accent)">electric blue</span></div>
+      <div style="margin-top:8px">Файлы хранятся в DO Spaces. Метаданные — в JSON.</div>
+    </div>
+  </aside>
 
-      <label>Жанр:</label>
-      <input type="text" name="genre" required>
+  <main class="main">
+    <div class="top">
+      <div class="title">Админ-панель — Медиа</div>
+      <div style="color:var(--muted); font-size:13px">Авторизован как <strong>{{ ADMIN_USER }}</strong></div>
+    </div>
 
-      <label>Цена ($):</label>
-      <input type="number" step="0.01" name="price" required>
+    <!-- UPLOAD -->
+    <section id="upload" class="card">
+      <h3>Загрузить файл</h3>
+      <form action="{{ url_for('admin') }}" method="post" enctype="multipart/form-data" id="upload-form">
+        <div class="row">
+          <div class="two">
+            <label>Тип медиа</label>
+            <select name="media_type" id="media_type">
+              <option value="audio">Музыка (продаётся)</option>
+              <option value="video">Видео (промо — бесплатно)</option>
+            </select>
+          </div>
+          <div class="two">
+            <label>Файл</label>
+            <input type="file" name="file" accept="audio/*,video/*" required />
+          </div>
+          <div class="two" id="artist_wrap">
+            <label>Артист</label>
+            <input type="text" name="artist" placeholder="Исполнитель (для музыки)" />
+          </div>
+          <div class="two" id="genre_wrap">
+            <label>Жанр</label>
+            <input type="text" name="genre" placeholder="Жанр (для музыки)" />
+          </div>
+          <div class="two" id="price_wrap">
+            <label>Цена (₺)</label>
+            <input type="number" step="0.01" name="price" placeholder="Например 3.99" />
+          </div>
+          <div class="two" id="title_wrap" style="display:none">
+            <label>Название видео</label>
+            <input type="text" name="title" placeholder="Название (для видео)" />
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <button class="primary" type="submit">Загрузить</button>
+        </div>
+      </form>
+    </section>
 
-      <label>Файл (MP3):</label>
-      <input type="file" name="file" accept=".mp3" required>
+    <!-- AUDIOS -->
+    <section id="audios" class="card" style="display:none">
+      <h3>🎵 Музыка</h3>
+      <table>
+        <thead><tr><th>Файл</th><th>Артист</th><th>Жанр</th><th>Цена</th><th></th></tr></thead>
+        <tbody>
+        {% for c in covers %}
+          <tr>
+            <td>{{ c.filename }}<br><small><a href="{{ c.url }}" target="_blank">{{ c.url|replace('https://','') }}</a></small></td>
+            <td>{{ c.artist }}</td>
+            <td>{{ c.genre }}</td>
+            <td>{{ (c.price / 100) if c.price is defined else 0 }} ₺</td>
+            <td>
+              <form action="{{ url_for('delete_media', media_type='audio', filename=c.filename) }}" method="post" style="display:inline">
+                <button class="danger">Удалить</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" style="color:var(--muted)">Пока нет загруженных треков</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </section>
 
-      <button type="submit">Добавить кавер</button>
-    </form>
-  </div>
+    <!-- VIDEOS -->
+    <section id="videos" class="card" style="display:none">
+      <h3>🎬 Видео</h3>
+      <table>
+        <thead><tr><th>Файл</th><th>Название</th><th></th></tr></thead>
+        <tbody>
+        {% for v in videos %}
+          <tr>
+            <td>{{ v.filename }}<br><small><a href="{{ v.url }}" target="_blank">{{ v.url|replace('https://','') }}</a></small></td>
+            <td>{{ v.title }}</td>
+            <td>
+              <form action="{{ url_for('delete_media', media_type='video', filename=v.filename) }}" method="post" style="display:inline">
+                <button class="danger">Удалить</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="3" style="color:var(--muted)">Пока нет загруженных видео</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </section>
 
-  <div style="max-width:800px; margin:0 auto;">
-    <h2>📀 Загруженные каверы:</h2>
-    <table>
-      <tr>
-        <th>Исполнитель</th>
-        <th>Файл</th>
-        <th>Жанр</th>
-        <th>Цена</th>
-        <th></th>
-      </tr>
-      {% for c in covers %}
-      <tr>
-        <td>{{ c.artist }}</td>
-        <td>{{ c.filename }}</td>
-        <td>{{ c.genre }}</td>
-        <td>{{ c.price / 100 }}$</td>
-        <td>
-          <form action="{{ url_for('delete_cover', filename=c.filename) }}" method="post" style="display:inline;">
-            <button class="delete-btn" onclick="return confirm('Удалить?')">✖</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </table>
-  </div>
+  </main>
+</div>
+
+<script>
+  function showTab(id){
+    document.querySelectorAll('section.card').forEach(s=> s.style.display='none');
+    document.getElementById(id).style.display = 'block';
+    document.querySelectorAll('.nav a').forEach(a=> a.classList.remove('active'));
+    document.querySelector('.nav a[href="#'+id+'"]').classList.add('active');
+  }
+  showTab('upload');
+
+  const mediaSelect = document.getElementById('media_type');
+  const titleWrap = document.getElementById('title_wrap');
+  const artistWrap = document.getElementById('artist_wrap');
+  const genreWrap = document.getElementById('genre_wrap');
+  const priceWrap = document.getElementById('price_wrap');
+
+  function updateFields(){
+    if(mediaSelect.value === 'audio'){
+      titleWrap.style.display = 'none';
+      artistWrap.style.display = 'block';
+      genreWrap.style.display = 'block';
+      priceWrap.style.display = 'block';
+    } else {
+      titleWrap.style.display = 'block';
+      artistWrap.style.display = 'none';
+      genreWrap.style.display = 'none';
+      priceWrap.style.display = 'none';
+    }
+  }
+  mediaSelect.addEventListener('change', updateFields);
+  updateFields();
+</script>
 </body>
 </html>

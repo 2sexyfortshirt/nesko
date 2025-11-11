@@ -1,11 +1,30 @@
+
+import threading
+
+# Заглушка для старых вызовов isAlive()
+if not hasattr(threading.Thread, "isAlive"):
+    threading.Thread.isAlive = threading.Thread.is_alive
+
+
+
 from flask import (
     Flask, render_template, redirect, url_for, send_file,
-    request, flash, jsonify, session, abort
+    request, flash, jsonify, session, abort, Response
 )
-import os, json, uuid
+from spaces_service import get_presigned_view_url, upload_file, delete_object, list_media
 
-from flask import send_from_directory
-from functools import wraps
+import os, json, uuid
+os.makedirs("data", exist_ok=True)
+AUDIOS_JSON = os.path.join("data", "covers.json")
+VIDEOS_JSON = os.path.join("data", "videos.json")
+
+if not os.path.exists(AUDIOS_JSON):
+    with open(AUDIOS_JSON, "w", encoding="utf-8") as f:
+        json.dump([], f, ensure_ascii=False, indent=2)
+
+if not os.path.exists(VIDEOS_JSON):
+    with open(VIDEOS_JSON, "w", encoding="utf-8") as f:
+        json.dump([], f, ensure_ascii=False, indent=2)
 
 
 
@@ -14,89 +33,93 @@ app.secret_key = os.getenv("FLASK_SECRET", "supersecret_local_change_me")
 
 # ----- пути -----
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-COVERS_DIR = os.path.join("static", "covers")
-COVERS_JSON = os.path.join(COVERS_DIR, "covers.json")
 
 # ----- админ конфиг из .env -----
 ADMIN_USER = os.getenv("ADMIN_USER", "admin")
 ADMIN_PASS = os.getenv("ADMIN_PASS", "neSko567___2341")
 
-# ----- убедимся, что папка есть -----
-os.makedirs(COVERS_DIR, exist_ok=True)
-if not os.path.exists(COVERS_JSON):
-    with open(COVERS_JSON, "w", encoding="utf-8") as f:
-        json.dump([], f, ensure_ascii=False, indent=2)
+
+from spaces_service import client, SPACES_BUCKET,SPACES_REGION
 
 # ----- загрузка/сохранение JSON -----
 def load_covers():
-    with open(COVERS_JSON, "r", encoding="utf-8") as f:
+    with open(AUDIOS_JSON, "r", encoding="utf-8") as f:
         return json.load(f)
 
-def save_covers(covers):
-    with open(COVERS_JSON, "w", encoding="utf-8") as f:
-        json.dump(covers, f, ensure_ascii=False, indent=2)
+def save_covers(audios):
+    with open(AUDIOS_JSON, "w", encoding="utf-8") as f:
+        json.dump(audios, f, ensure_ascii=False, indent=2)
 
-# ----- декоратор для защиты админ маршрутов -----
-def admin_required(f):
-    @wraps(f)
-    def wrapped(*args, **kwargs):
-        if not session.get("admin_logged_in"):
-            return redirect(url_for("login", next=request.path))
-        return f(*args, **kwargs)
-    return wrapped
+def load_videos():
+    with open(VIDEOS_JSON, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def save_videos(videos):
+    with open(VIDEOS_JSON, "w", encoding="utf-8") as f:
+        json.dump(videos, f, ensure_ascii=False, indent=2)
 
 # ======== публичная часть (index, fake-buy, download) ========
-
 @app.route("/")
 def index():
     query = request.args.get("q", "").lower()
-    covers = load_covers()
+    audios, videos = list_media()
 
-    for c in covers:
-        c["audio_url"] = url_for("serve_audio", filename=c["filename"])
+    # Подготовим каждый аудио-объект с нужными полями
+    audio_covers = []
+    for a in audios:
+        cover = {
+            "filename": a.get("filename"),
+            "url": a.get("url", f"/stream/{a.get('filename')}"),
+            "artist": a.get("artist"),
+            "genre": a.get("genre"),
+            "price": a.get("price", 0)
+        }
+        audio_covers.append(cover)
 
+    # Фильтруем по поисковому запросу
     if query:
-        covers = [c for c in covers if query in c['artist'].lower()
-                  or query in c['filename'].lower()
-                  or query in c['genre'].lower()]
-    return render_template("index.html", covers=covers, query=query)
+        audio_covers = [a for a in audio_covers if query in a['filename'].lower()
+                                               or query in a['artist'].lower()
+                                               or query in a['genre'].lower()]
+
+    return render_template("index.html", covers=audio_covers, videos=videos, query=query)
+
 # одноразовые токены в памяти
 download_tokens = {}
+@app.route("/stream/<path:key>")
+def stream(key):
+    try:
+        obj = client.get_object(Bucket=SPACES_BUCKET, Key=key)
+        def generate():
+            for chunk in obj['Body'].iter_chunks(chunk_size=1024*64):
+                yield chunk
+        content_type = "audio/mpeg" if key.lower().endswith(".mp3") else "video/mp4"
+        return Response(generate(), content_type=content_type)
+    except client.exceptions.NoSuchKey:
+        return "File not found", 404
 
-@app.route("/fake-buy/<filename>", methods=["POST"])
+@app.route("/fake-buy/<path:filename>", methods=["POST"])
 def fake_buy(filename):
-    covers = load_covers()
-    cover = next((c for c in covers if c["filename"] == filename), None)
-
-    if not cover:
-        return jsonify({"success": False, "message": "Песня не найдена!"}), 404
-
-    token = uuid.uuid4().hex
-    download_tokens[token] = filename
-
     return jsonify({
         "success": True,
-        "message": "Оплата успешно имитирована! ✅",
-        "download_url": f"/download/{token}"
+        "download_url": f"/stream/{filename}"
     })
-
+# ===== скачивание по токену =====
 @app.route("/download/<token>")
 def download(token):
-    # если токен — это имя файла (старый маршрут), блокируем — теперь токен обязателен
-    if token in [c.get("filename") for c in load_covers()]:
-        return "⛔ Прямой доступ запрещён. Используй одноразовый токен.", 403
-
     if token not in download_tokens:
         return "⛔ Ссылка недействительна или уже использована.", 410
 
     filename = download_tokens.pop(token)
-    file_path = os.path.join(COVERS_DIR, filename)
+    audios = load_covers()
+    audio = next((c for c in audios if c["filename"] == filename), None)
 
-    if not os.path.exists(file_path):
+    if not audio:
         return "Файл не найден", 404
 
-    return send_file(file_path, as_attachment=True)
-
+    # редирект на временную ссылку
+    presigned_url = get_presigned_view_url(filename, expires_in=3600)
+    return redirect(presigned_url)
 # ======== админ: login / logout / admin panel / delete / add ========
 
 @app.route("/admin/login", methods=["GET", "POST"])
@@ -121,87 +144,113 @@ def login():
     return render_template("login.html")
 
 @app.route("/admin/logout")
-@admin_required
+
 def logout():
     session.pop("admin_logged_in", None)
     flash("Вы вышли из админки", "success")
     return redirect(url_for("login"))
 
 @app.route("/admin", methods=["GET", "POST"])
-@admin_required
 def admin():
-    covers = load_covers()
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
 
     if request.method == "POST":
-        # добавление кавера
-        artist = request.form.get("artist", "").strip()
-        genre = request.form.get("genre", "").strip()
-        price_raw = request.form.get("price", "0")
-        try:
-            price = int(float(price_raw) * 100)
-        except:
-            price = 0
-
+        media_type = request.form.get("media_type")
         file = request.files.get("file")
+
         if not file or not file.filename:
             flash("⚠️ Не выбран файл!", "error")
             return redirect(url_for("admin"))
 
         filename = file.filename
-        safe_path = os.path.join(COVERS_DIR, filename)
+        url = upload_file(file, filename)
+        if not url:
+            flash("❌ Ошибка загрузки в облако!", "error")
+            return redirect(url_for("admin"))
 
-        # если файл с таким именем уже есть — переименуем, добавив суффикс
-        if os.path.exists(safe_path):
-            name, ext = os.path.splitext(filename)
-            filename = f"{name}_{uuid.uuid4().hex[:6]}{ext}"
-            safe_path = os.path.join(COVERS_DIR, filename)
+        # --- Добавляем в JSON ---
+        if media_type == "audio":
+            artist = request.form.get("artist") or "Unknown"
+            genre = request.form.get("genre") or "Unknown"
+            price_raw = request.form.get("price", "0")
 
-        file.save(safe_path)
+            try:
+                price = int(float(price_raw) * 100)
+            except:
+                price = 0
 
-        covers.append({
-            "filename": filename,
-            "artist": artist or "Unknown",
-            "genre": genre or "Unknown",
-            "price": price
-        })
-        save_covers(covers)
-        flash(f"✅ Кавер '{filename}' добавлен!", "success")
+            covers = load_covers()
+            covers.append({
+                "filename": filename,
+                "url": f"/stream/{filename}",
+                "artist": artist,
+                "genre": genre,
+                "price": price
+            })
+            save_covers(covers)
+            print(f"[JSON] 🎵 Добавлена запись: {filename}")
+
+        elif media_type == "video":
+            title = request.form.get("title") or filename
+            videos = load_videos()
+            videos.append({
+                "filename": filename,
+                "url": f"/stream/{filename}",
+                "title": title
+            })
+            save_videos(videos)
+            print(f"[JSON] 🎬 Добавлена запись: {filename}")
+
+        flash(f"✅ Файл '{filename}' успешно загружен!", "success")
         return redirect(url_for("admin"))
 
-    return render_template("admin.html", covers=covers)
+    # Отображаем список файлов
+    audios, videos = list_media()
+    return render_template("admin.html", covers=audios, videos=videos, ADMIN_USER=ADMIN_USER)
 
+@app.route("/admin/delete/<media_type>/<filename>", methods=["POST"])
+def delete_media(media_type, filename):
+    if not session.get("admin_logged_in"):
+        flash("❌ Доступ запрещён. Войдите в админку.", "error")
+        print(f"[WARN] Неавторизованный доступ к удалению: {filename}")
+        return redirect(url_for("login"))
 
+    print(f"\n=== 🗑️ УДАЛЕНИЕ ФАЙЛА ===")
+    print(f"Тип: {media_type}")
+    print(f"Файл: {filename}")
 
-@app.route("/audio/<filename>")
-def serve_audio(filename):
-    return send_from_directory(COVERS_DIR, filename)
+    # Загружаем JSON
+    if media_type == "audio":
+        items = load_covers()
+        save_fn = save_covers
+    else:
+        items = load_videos()
+        save_fn = save_videos
 
-@app.route("/delete/<filename>", methods=["POST"])
-@admin_required
-def delete_cover(filename):
-    covers = load_covers()
-    found = next((c for c in covers if c["filename"] == filename), None)
+    # Проверяем, есть ли файл
+    found = next((x for x in items if x["filename"] == filename), None)
     if not found:
-        flash("Файл не найден в списке.", "error")
+        print(f"[ERROR] Файл '{filename}' не найден в JSON")
+        flash("Файл не найден.", "error")
         return redirect(url_for("admin"))
 
-    # удаляем из JSON
-    covers = [c for c in covers if c["filename"] != filename]
-    save_covers(covers)
-
-    # удаляем сам MP3, если существует
-    file_path = os.path.join(COVERS_DIR, filename)
+    # Пробуем удалить из Spaces
     try:
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            flash(f"Файл {filename} удалён.", "success")
-        else:
-            flash("Файл не найден на диске, запись удалена из JSON.", "warning")
+        delete_object(filename)
+        print(f"[OK] Удалено из облака: {filename}")
     except Exception as e:
-        flash(f"Ошибка при удалении файла: {e}", "error")
+        print(f"[ERROR] Ошибка при удалении из Spaces: {e}")
+        flash(f"Ошибка при удалении из облака: {e}", "error")
 
+    # Удаляем из JSON
+    items = [x for x in items if x["filename"] != filename]
+    save_fn(items)
+    print(f"[OK] Удалено из JSON: {filename}")
+    print("=========================\n")
+
+    flash(f"✅ '{filename}' удалён!", "success")
     return redirect(url_for("admin"))
 
-# ======== запуск ========
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=True)
