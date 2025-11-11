@@ -90,17 +90,52 @@ def index():
 download_tokens = {}
 from flask_cors import cross_origin
 @app.route("/stream/<path:key>")
-@cross_origin()
 def stream(key):
     try:
         obj = client.get_object(Bucket=SPACES_BUCKET, Key=key)
-        def generate():
-            for chunk in obj['Body'].iter_chunks(chunk_size=1024*64):
-                yield chunk
-        content_type = "audio/mpeg" if key.lower().endswith(".mp3") else "video/mp4"
-        return Response(generate(), content_type=content_type)
+        file_size = obj['ContentLength']
+        range_header = request.headers.get('Range')
+
+        if range_header:
+            # Safari (и другие браузеры) отправляют Range-заголовок, например: "bytes=0-"
+            byte1, byte2 = 0, None
+            m = range_header.replace("bytes=", "").split("-")
+            if m[0]:
+                byte1 = int(m[0])
+            if len(m) > 1 and m[1]:
+                byte2 = int(m[1])
+            length = (byte2 or file_size - 1) - byte1 + 1
+
+            obj = client.get_object(
+                Bucket=SPACES_BUCKET,
+                Key=key,
+                Range=f"bytes={byte1}-{byte2 or file_size - 1}"
+            )
+
+            return Response(
+                obj["Body"].read(),
+                206,
+                mimetype="video/mp4",
+                content_type="video/mp4",
+                direct_passthrough=True,
+                headers={
+                    "Content-Range": f"bytes {byte1}-{byte2 or file_size - 1}/{file_size}",
+                    "Accept-Ranges": "bytes",
+                    "Content-Length": str(length),
+                }
+            )
+
+        # Если Range не указан (например, аудио)
+        return Response(
+            obj["Body"].read(),
+            200,
+            mimetype="audio/mpeg" if key.endswith(".mp3") else "video/mp4",
+            headers={"Accept-Ranges": "bytes"}
+        )
+
     except client.exceptions.NoSuchKey:
-        return "File not found", 404
+        abort(404)
+
 
 @app.route("/fake-buy/<path:filename>", methods=["POST"])
 def fake_buy(filename):
