@@ -79,15 +79,18 @@ def get_presigned_view_url(filename, expires_in=3600):
 
 def list_media():
     """Возвращает список аудио и видео файлов из JSON и DO Spaces"""
+    videos_path = os.path.join(DATA_DIR, "videos.json")
+    covers_path = os.path.join(DATA_DIR, "covers.json")
+
     # --- Загружаем JSON ---
     try:
-        with open(os.path.join(DATA_DIR, "covers.json"), "r", encoding="utf-8") as f:
+        with open(covers_path, "r", encoding="utf-8") as f:
             covers_metadata = json.load(f)
     except FileNotFoundError:
         covers_metadata = []
 
     try:
-        with open(os.path.join(DATA_DIR, "videos.json"), "r", encoding="utf-8") as f:
+        with open(videos_path, "r", encoding="utf-8") as f:
             videos_metadata = json.load(f)
     except FileNotFoundError:
         videos_metadata = []
@@ -96,7 +99,7 @@ def list_media():
     videos = []
 
     # --- Добавляем данные из JSON ---
-    audio_filenames = set()
+    audio_filenames = {cover["filename"] for cover in covers_metadata}
     for cover in covers_metadata:
         audios.append({
             "filename": cover["filename"],
@@ -105,18 +108,16 @@ def list_media():
             "genre": cover.get("genre"),
             "price": cover.get("price", 100)
         })
-        audio_filenames.add(cover["filename"])
 
-    video_filenames = set()
+    video_filenames = {v["filename"] for v in videos_metadata}
     for video in videos_metadata:
         videos.append({
             "filename": video["filename"],
             "url": video["url"],
             "title": video.get("title", os.path.splitext(video["filename"])[0])
         })
-        video_filenames.add(video["filename"])
 
-    # --- Добавляем новые файлы из DO Spaces, которых нет в JSON ---
+    # --- Проверяем файлы из DO Spaces ---
     resp = client.list_objects_v2(Bucket=SPACES_BUCKET)
     for obj in resp.get('Contents', []):
         key = obj['Key']
@@ -134,21 +135,26 @@ def list_media():
 
         elif key.lower().endswith(('.mp4', '.webm')):
             if filename not in video_filenames:
-                videos.append({
+                new_video = {
                     "filename": filename,
                     "url": f"/stream/{key}",
                     "title": os.path.splitext(filename)[0]
-                })
+                }
+                videos.append(new_video)
+                videos_metadata.append(new_video)  # 👈 Добавляем в JSON-данные тоже
+
+    # --- Сохраняем обновлённый videos.json ---
+    with open(videos_path, "w", encoding="utf-8") as f:
+        json.dump(videos_metadata, f, ensure_ascii=False, indent=2)
 
     return audios, videos
 
 
-
 if __name__ == "__main__":
-    videos, audios = list_media()
-    print("🎬 Видео:")
-    for v in videos:
-        print(v)
-    print("\n🎵 Музыка:")
+    audios, videos = list_media()
+    print("🎬 covers:")
     for a in audios:
         print(a)
+    print("\n🎵 video:")
+    for v in videos:
+        print(v)
