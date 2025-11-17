@@ -1,354 +1,311 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
-
-<title>NESKO COVERS 🎵🎬</title>
+<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<title>NESKO COVERS — Artist Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
-
+:root{
+  --bg-1: #09030a;
+  --bg-2: #120021;
+  --accent-1: #c400ff;
+  --accent-2: #00ffe7;
+  --glass: rgba(255,255,255,0.06);
+  --muted: rgba(255,255,255,0.65);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
 body {
+  margin:0;padding:32px 28px 80px;
   font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #0f0f0f, #1a0033);
-  color: #eaeaea;
-  padding: 20px;
-  min-height: 100vh;
+  background: radial-gradient(1200px 600px at 10% 10%, rgba(196,0,255,0.08), transparent),
+              radial-gradient(800px 400px at 90% 80%, rgba(0,230,231,0.04), transparent),
+              linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+  color:#f4f4f6;
+  -webkit-font-smoothing:antialiased;
 }
+.body-lights{
+  position:fixed;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:0;overflow:hidden;
+}
+.light-ray{position:absolute;width:40vw;height:80vh;left:-10%;top:-10%;transform:rotate(-20deg);filter:blur(80px);opacity:0.06;background:linear-gradient(90deg, rgba(196,0,255,0.9), rgba(0,230,231,0.7));animation:drift 12s linear infinite;}
+.light-ray.r2{left:40%;top:-30%;transform:rotate(10deg);animation-duration:18s;opacity:0.045}
+.light-ray.r3{left:70%;top:10%;transform:rotate(-35deg);animation-duration:24s;opacity:0.035}
+@keyframes drift{0%{transform:translateX(-8%) rotate(-20deg)}50%{transform:translateX(8%) rotate(-20deg)}100%{transform:translateX(-8%) rotate(-20deg)}}
 
-h1 {
-  text-align: center;
-  font-size: 40px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  margin-bottom: 25px;
-  background: linear-gradient(90deg, #00f2ff, #ff00f7);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
+header{position:relative;z-index:2;max-width:1280px;margin:0 auto}
+h1{font-family:'Playfair Display', serif;font-size:52px;margin:8px 0 6px;color:#fff;letter-spacing:0.6px;text-align:center;text-shadow:0 6px 30px rgba(0,0,0,0.8)}
+.subtitle{color:var(--muted);text-align:center;margin-bottom:22px}
 
-/* Форма поиска */
-form {
-  display: flex;
-  gap: 10px;
-  margin: 0 auto 25px;
-  max-width: 600px;
-}
-input[type="text"] {
-  flex: 1;
-  padding: 12px 16px;
-  border-radius: 10px;
-  border: 2px solid #3b0066;
-  background: #0f0f0f;
-  color: #fff;
-  font-size: 16px;
-  outline: none;
-  transition: 0.3s;
-}
-input[type="text"]:focus {
-  border-color: #b300ff;
-  box-shadow: 0 0 10px #b300ff;
-}
-button[type="submit"] {
-  background: linear-gradient(135deg, #8a00ff, #ff00e6);
-  color: white;
-  border: none;
-  padding: 12px 18px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: 0.3s;
-}
-button[type="submit"]:hover {
-  transform: scale(1.07);
-  box-shadow: 0 0 12px #ff00e6;
-}
+.search-wrap{display:flex;justify-content:center;margin-bottom:28px}
+.search{display:flex;gap:12px;width:100%;max-width:760px}
+.search input[type="text"]{flex:1;padding:14px 18px;border-radius:16px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:#fff;font-size:16px;backdrop-filter:blur(6px)}
+.search input[type="text"]:focus{outline:none;box-shadow:0 0 20px rgba(196,0,255,0.12);border-color:rgba(196,0,255,0.25)}
+.search button{background:linear-gradient(135deg,var(--accent-1),#7a00ff);border:none;padding:12px 18px;border-radius:14px;color:#fff;font-weight:700;cursor:pointer}
 
-/* Колонки */
-.columns {
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
-}
+.container{position:relative;z-index:2;max-width:1280px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr;gap:28px;align-items:start}
+@media(max-width:960px){.container{grid-template-columns:1fr;padding:0 12px}}
 
-/* Левая колонка — поиск + аудио */
-.left-column {
-  flex: 2 1 500px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
+.audio-list{display:flex;flex-direction:column;gap:18px}
+.card{display:flex;gap:16px;align-items:center;padding:18px;border-radius:16px;background:var(--glass);border:1px solid rgba(255,255,255,0.04);backdrop-filter:blur(8px);transition:transform .28s,box-shadow .28s}
+.card:hover{transform:translateY(-6px);box-shadow:0 12px 40px rgba(0,0,0,0.6);border-color:rgba(196,0,255,0.16)}
 
-/* Правая колонка — видео */
-.right-column {
-  flex: 1 1 250px;
-  max-width: 350px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  max-height: 80vh;
-  overflow-y: auto;
-}
+.cover-thumb{flex:0 0 92px;height:92px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(0,0,0,0.2));overflow:hidden;display:flex;align-items:center;justify-content:center}
+.cover-thumb img{width:100%;height:100%;object-fit:cover}
 
-/* Аудио блок */
-.cover {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 18px;
-  border-radius: 14px;
-  backdrop-filter: blur(6px);
-  border: 1px solid transparent;
-  transition: 0.3s, box-shadow 0.1s;
-}
-.cover:hover {
-  transform: translateY(-3px);
-  border-color: #9e00ff;
-  box-shadow: 0 0 12px #9e00ff;
-}
-.artist { font-weight: 600; font-size: 18px; color: #ffdfff; }
-.filename { color: #b8b8ff; }
-.genre { color: #7efff5; font-size: 14px; }
+.card-meta{flex:1;min-width:0}
+.artist{font-family:'Playfair Display', serif;font-size:18px;font-weight:600;color:#fff}
+.filename{display:block;color:#d9c7ff;margin-top:4px;font-size:14px}
+.genre{display:inline-block;margin-top:8px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.03);color:#bff7ee;font-size:13px}
 
-.buy-btn {
-  margin-top: 8px;
-  background: linear-gradient(135deg, #00ffcc, #0099ff);
-  border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  color: #000;
-  font-weight: 600;
-  transition: 0.3s;
-}
-.buy-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 12px #00eaff;
-}
+.card-controls{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.buttons{display:flex;gap:8px}
+.buy-btn{background:linear-gradient(135deg,var(--accent-2),#0088ff);border:none;padding:10px 14px;border-radius:12px;color:#021019;font-weight:800;cursor:pointer}
+.play-btn{background:linear-gradient(135deg,var(--accent-1),#7a00ff);border:none;padding:10px 14px;border-radius:12px;color:#fff;font-weight:800;cursor:pointer}
 
-.play-btn {
-  display: inline-block;
-  margin-top: 10px;
-  padding: 10px 18px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #ff00e6, #00f2ff);
-  color: #fff;
-  font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
-  border: none;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.play-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 12px #ff00e6;
-}
+.progress-container{display:flex;align-items:center;gap:10px;width:100%;margin-top:10px}
+.current-time,.duration{font-size:13px;color:rgba(255,255,255,0.75);min-width:42px;text-align:center}
+.progress-bar{flex:1;height:6px;border-radius:6px;background:transparent}
+.progress-bar::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:linear-gradient(90deg,#5b00ff,#00ffe7)}
+.progress-bar::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;margin-top:-4px;box-shadow:0 2px 8px rgba(0,0,0,0.6)}
 
-.progress-container {
-  margin-top:10px;
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-.progress-container input {
-  flex:1;
-}
+.player-expanded{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;z-index:9999;background:linear-gradient(180deg,rgba(18,0,30,0.96),rgba(6,0,12,0.92));padding:14px 18px;border-radius:18px;display:flex;gap:14px;align-items:center;box-shadow:0 12px 60px rgba(0,0,0,0.7);border:1px solid rgba(196,0,255,0.12);min-width:340px}
+.player-expanded .thumb{width:72px;height:72px;border-radius:10px;overflow:hidden}
+.player-expanded .meta{min-width:0}
+.player-expanded .artist{font-size:16px}
+.player-expanded .controls{display:flex;gap:10px;align-items:center}
+.player-expanded.hidden{display:none}
 
-/* Видео */
-video {
-  width: 100%;
-  border-radius: 12px;
-}
+.right-column{display:flex;flex-direction:column;gap:16px}
+.section-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:6px}
+.video-card{border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.04)}
+.video-card video{width:100%;height:auto;display:block}
 
-/* Модалка покупки */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 999;
-  left: 0; top: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.7);
-  justify-content: center;
-  align-items: center;
-}
-.modal-content {
-  background: #1b0033;
-  padding: 20px;
-  border-radius: 12px;
-  max-width: 400px;
-  text-align: center;
-  color: #fff;
-}
-.modal-content button {
-  margin-top: 12px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  background: #00ffcc;
-  font-weight: 600;
-  cursor: pointer;
-}
+.modal{position:fixed;left:0;top:0;right:0;bottom:0;display:none;justify-content:center;align-items:center;background:rgba(0,0,0,0.6);z-index:2000}
+.modal .modal-panel{background:linear-gradient(180deg,#190021,#120014);padding:22px;border-radius:14px;color:#fff;min-width:300px;text-align:center;border:1px solid rgba(196,0,255,0.12)}
+.modal .modal-panel a.download{display:inline-block;margin-top:12px;padding:10px 16px;background:linear-gradient(135deg,#00ffe7,#00a0ff);color:#001018;border-radius:10px;font-weight:700}
 
-/* Пустой результат */
-p { text-align: center; font-size: 16px; margin-top: 20px; color: #ff99cc; }
+.waves{position:absolute;left:0;right:0;bottom:0;height:200px;background:linear-gradient(180deg,transparent,rgba(0,0,0,0.25));pointer-events:none}
+.wave-svg{position:absolute;left:0;bottom:-20px;width:100%;opacity:0.06}
 
-/* Адаптив для мобильных */
-@media (max-width: 768px) {
-  .columns {
-    flex-direction: column;
-  }
-  .right-column {
-    max-width: 100%;
-  }
-  video {
-    max-height: 200px;
-  }
+@media(max-width:560px){
+  h1{font-size:32px}
+  .card{padding:16px;flex-direction:column;align-items:center;text-align:center}
+  .cover-thumb{flex:0 0 120px;height:120px;margin-bottom:12px}
+  .player-expanded{left:12px;right:12px;transform:none;bottom:12px;width:auto}
+  .play-btn,.buy-btn{padding:14px 18px;border-radius:50%;font-size:16px;width:60px;height:60px}
+  .card-controls{flex-direction:row;justify-content:center;width:100%}
 }
 </style>
 </head>
 <body>
-<h1>NESKO COVERS 🎶🎬</h1>
-
-<form method="get" action="/">
-  <input type="text" id="search" name="q" value="{{ query }}" placeholder="Поиск по названию, артисту или жанру...">
-  <button type="submit">🔍</button>
-</form>
-
-<div class="columns">
-  <div class="left-column">
-    {% if covers %}
-      <h2>🎵 Музыка</h2>
-      {% for cover in covers %}
-      <div class="cover">
-        <strong class="artist">{{ cover.artist }}</strong>
-        <span class="filename">{{ cover.filename }}</span><br>
-        <span class="genre">{{ cover.genre }}</span><br>
-        <button class="buy-btn" data-filename="{{ cover.filename }}">💳 Купить за ${{ cover.price / 100 }}</button>
-        <audio src="{{ cover.url }}" class="audio-player"></audio>
-        <div class="progress-container">
-          <span class="current-time">0:00</span>
-          <input type="range" class="progress-bar" value="0" min="0" max="30" step="0.1">
-          <span class="duration">0:00</span>
-        </div>
-        <button class="play-btn">▶️ Play 30s</button>
+<div class="body-lights" aria-hidden="true">
+  <div class="light-ray"></div>
+  <div class="light-ray r2"></div>
+  <div class="light-ray r3"></div>
+</div>
+<header>
+  <h1>NESKO COVERS</h1>
+  <div class="subtitle">Премиальные музыкальные обложки & короткие превью — прослушай 30 секунд</div>
+  <div class="search-wrap">
+    <form class="search" method="get" action="/">
+      <input type="text" id="search" name="q" value="{{ query }}" placeholder="Поиск по названию, артисту или жанру...">
+      <button type="submit">🔍</button>
+    </form>
+  </div>
+</header>
+<main class="container">
+  <section class="left" aria-label="Музыка">
+    <div class="audio-list">
+      {% if covers %}
+        <div class="section-title">🎵 Музыка</div>
+        {% for cover in covers %}
+        <article class="card" data-filename="{{ cover.filename }}">
+          <div class="cover-thumb">
+            {% if cover.thumb_url %}
+              <img src="{{ cover.thumb_url }}" alt="{{ cover.filename }}">
+            {% else %}
+              <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:700;color:rgba(255,255,255,0.92);font-size:22px;background:linear-gradient(180deg,rgba(196,0,255,0.12),rgba(0,230,231,0.06));">{{ cover.artist[0]|upper }}</div>
+            {% endif %}
+          </div>
+          <div class="card-meta">
+            <div class="artist">{{ cover.artist }}</div>
+            <div class="filename">{{ cover.filename }}</div>
+            <div class="genre">{{ cover.genre }}</div>
+            <div class="progress-container" aria-hidden="true">
+              <span class="current-time">0:00</span>
+              <input type="range" class="progress-bar" value="0" min="0" max="30" step="0.1">
+              <span class="duration">0:00</span>
+            </div>
+            <audio src="{{ cover.url }}" preload="metadata" class="audio-player"></audio>
+          </div>
+          <div class="card-controls">
+            <div class="buttons">
+              <button class="buy-btn" data-filename="{{ cover.filename }}">💳 ${{ (cover.price / 100)|round(2) }}</button>
+              <button class="play-btn">▶</button>
+            </div>
+          </div>
+        </article>
+        {% endfor %}
+      {% else %}
+        <p>Ничего не найдено — попробуй другой запрос.</p>
+      {% endif %}
+    </div>
+  </section>
+  <aside class="right-column" aria-label="Видео">
+    {% if videos %}
+      <div class="section-title">🎬 Видео</div>
+      {% for video in videos %}
+      <div class="video-card">
+        <video src="{{ video.url }}" controls playsinline preload="metadata"></video>
       </div>
       {% endfor %}
     {% endif %}
-  </div>
+  </aside>
+</main>
 
- <div class="right-column">
-  {% if videos %}
-    <h2>🎬 Видео</h2>
-    {% for video in videos %}
-    <div class="cover">
-
-      <video
-        src="{{ video.url }}"
-        controls
-        playsinline
-        preload="metadata"
-        style="width:100%; border-radius:12px;"
-      >
-        Ваш браузер не поддерживает видео.
-      </video>
+<!-- expanded player -->
+<div id="player-expanded" class="player-expanded hidden" role="region" aria-label="Mini player">
+  <div class="thumb"><img id="player-thumb" src="" alt="" style="width:100%;height:100%;object-fit:cover"></div>
+  <div class="meta">
+    <div id="player-artist" class="artist">Artist</div>
+    <div id="player-title" class="filename">Title</div>
+    <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+      <div class="controls">
+        <button id="player-play" class="play-btn" style="padding:8px 12px;font-size:14px">▶</button>
+      </div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.8)" id="player-time">0:00 / 0:30</div>
     </div>
-    {% endfor %}
-  {% endif %}
+  </div>
 </div>
 
-<div class="modal" id="buy-modal">
-  <div class="modal-content">
-    <p>✅ Оплата успешно имитирована!</p>
-    <a href="#" id="download-link"><button>Скачать</button></a>
-    <br><br>
-    <button onclick="closeModal()">Закрыть</button>
+<!-- modal -->
+<div id="buy-modal" class="modal" role="dialog" aria-modal="true">
+  <div class="modal-panel">
+    <div id="modal-message">✅ Оплата успешно имитирована!</div>
+    <a id="download-link" class="download" href="#">Скачать</a>
+    <div style="margin-top:14px"><button onclick="closeModal()" style="padding:8px 12px;border-radius:8px;border:none;background:#fff;color:#111;font-weight:700">Закрыть</button></div>
   </div>
+</div>
+
+<div class="waves" aria-hidden="true">
+  <svg class="wave-svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M0,40 C150,120 350,0 600,40 C850,80 1050,30 1200,60 L1200,120 L0,120 Z" fill="#ffffff"/></svg>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const covers = Array.from(document.getElementsByClassName("cover"));
-  const modal = document.getElementById("buy-modal");
-  const downloadLink = document.getElementById("download-link");
+// helper
+const formatTime = t => {
+  t = Math.floor(t);
+  const m = Math.floor(t/60);
+  const s = t % 60;
+  return `${m}:${s<10? '0'+s : s}`;
+};
 
-  function closeModal() { modal.style.display = "none"; }
+const cards = Array.from(document.querySelectorAll('.card'));
+const modal = document.getElementById('buy-modal');
+const downloadLink = document.getElementById('download-link');
+const player = document.getElementById('player-expanded');
+const playerThumb = document.getElementById('player-thumb');
+const playerArtist = document.getElementById('player-artist');
+const playerTitle = document.getElementById('player-title');
+const playerPlay = document.getElementById('player-play');
+const playerTime = document.getElementById('player-time');
 
-  covers.forEach(cover => {
-    const audio = cover.querySelector("audio");
-    const playBtn = cover.querySelector(".play-btn");
-    const progressBar = cover.querySelector(".progress-bar");
-    const currentTimeEl = cover.querySelector(".current-time");
-    const durationEl = cover.querySelector(".duration");
-    const buyBtn = cover.querySelector(".buy-btn");
+let expandedAudio = null;
+let fragmentTimeout = null;
 
-    if(audio){
-      const formatTime = t => {
-        const m = Math.floor(t / 60);
-        const s = Math.floor(t % 60);
-        return `${m}:${s < 10 ? '0'+s : s}`;
-      };
+function closeModal(){ modal.style.display = 'none'; }
 
-      audio.addEventListener("loadedmetadata", () => {
-        durationEl.textContent = formatTime(Math.min(audio.duration,30));
-      });
+cards.forEach(card => {
+  const audio = card.querySelector('.audio-player');
+  const playBtn = card.querySelector('.play-btn');
+  const progressBar = card.querySelector('.progress-bar');
+  const currentTimeEl = card.querySelector('.current-time');
+  const durationEl = card.querySelector('.duration');
+  const buyBtn = card.querySelector('.buy-btn');
 
-      let fragmentTimeout;
-
-      const stopAudio = () => {
-        audio.pause();
-        audio.currentTime = 0;
-        playBtn.textContent = "▶️ Play 30s";
-        progressBar.value = 0;
-        currentTimeEl.textContent = "0:00";
-        clearTimeout(fragmentTimeout);
-      };
-
-      const updateProgress = () => {
-        const time = Math.min(audio.currentTime,30);
-        progressBar.value = time;
-        currentTimeEl.textContent = formatTime(time);
-        if(audio.currentTime >= 30) stopAudio();
-        else requestAnimationFrame(updateProgress);
-      };
-
-      playBtn.addEventListener("click", () => {
-        if(audio.paused){
-          audio.play();
-          playBtn.textContent = "⏸ Pause";
-          updateProgress();
-          fragmentTimeout = setTimeout(stopAudio, 30000);
-        } else stopAudio();
-      });
-
-
-      progressBar.addEventListener("input", () => {
-        audio.currentTime = parseFloat(progressBar.value);
-        currentTimeEl.textContent = formatTime(audio.currentTime);
-      });
-
-      audio.addEventListener("ended", stopAudio);
-    }
-
-    if(buyBtn){
-      buyBtn.addEventListener("click", async () => {
-        const filename = buyBtn.dataset.filename;
-        buyBtn.disabled = true;
-        try {
-          const res = await fetch(`/fake-buy/${filename}`, {method:'POST'});
-          const data = await res.json();
-          if(data.success){
-            downloadLink.href = data.download_url;
-            modal.style.display = "flex";
-          } else alert(data.message);
-        } catch(e){ alert("Ошибка: " + e); }
-        buyBtn.disabled = false;
-      });
-    }
+  audio.addEventListener('loadedmetadata', () => {
+    durationEl.textContent = formatTime(Math.min(audio.duration || 30, 30));
   });
 
-  window.closeModal = closeModal;
+  const stopAudio = () => {
+    if(!audio) return;
+    audio.pause();
+    audio.currentTime = 0;
+    playBtn.textContent = '▶';
+    progressBar.value = 0;
+    currentTimeEl.textContent = '0:00';
+    clearTimeout(fragmentTimeout);
+    if(expandedAudio === audio) collapsePlayer();
+  };
+
+  const updateProgress = () => {
+    if(!audio || audio.paused) return;
+    const time = Math.min(audio.currentTime,30);
+    progressBar.value = time;
+    currentTimeEl.textContent = formatTime(time);
+    if(audio.currentTime >= 30){ stopAudio(); return; }
+    requestAnimationFrame(updateProgress);
+  };
+
+  playBtn.addEventListener('click', async () => {
+    document.querySelectorAll('audio').forEach(a=>{ if(a!==audio){ a.pause(); a.currentTime = 0; } });
+    if(audio.paused){
+      try{ await audio.play(); } catch(e){ console.warn('Playback failed', e); }
+      playBtn.textContent = '⏸';
+      updateProgress();
+      fragmentTimeout = setTimeout(()=>{ stopAudio(); }, 30000);
+      expandPlayer(card, audio);
+    } else stopAudio();
+  });
+
+  progressBar.addEventListener('input', ()=>{
+    audio.currentTime = parseFloat(progressBar.value);
+    currentTimeEl.textContent = formatTime(audio.currentTime);
+  });
+
+  audio.addEventListener('ended', stopAudio);
+
+  if(buyBtn){
+    buyBtn.addEventListener('click', async ()=>{
+      const filename = buyBtn.dataset.filename;
+      buyBtn.disabled = true;
+      try{
+        const res = await fetch(`/fake-buy/${filename}`, {method:'POST'});
+        const data = await res.json();
+        if(data.success){
+          downloadLink.href = data.download_url;
+          modal.style.display = 'flex';
+        } else { alert('Ошибка оплаты'); }
+      } catch(e){ console.error(e); alert('Ошибка сети'); }
+      buyBtn.disabled = false;
+    });
+  }
 });
+
+function expandPlayer(card,audio){
+  const thumbImg = card.querySelector('.cover-thumb img');
+  playerThumb.src = thumbImg ? thumbImg.src : '';
+  playerArtist.textContent = card.querySelector('.artist').textContent;
+  playerTitle.textContent = card.querySelector('.filename').textContent;
+  playerTime.textContent = `0:00 / 0:30`;
+  player.classList.remove('hidden');
+  expandedAudio = audio;
+  playerPlay.textContent = '⏸';
+}
+
+function collapsePlayer(){
+  player.classList.add('hidden');
+  expandedAudio = null;
+}
+
+playerPlay.addEventListener('click', ()=>{
+  if(!expandedAudio) return;
+  if(expandedAudio.paused) { expandedAudio.play(); playerPlay.textContent='⏸'; }
+  else { expandedAudio.pause(); playerPlay.textContent='▶'; }
+});
+
 </script>
- </body>
+</body>
 </html>

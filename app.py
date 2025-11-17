@@ -13,6 +13,7 @@ from flask import (
 )
 from flask_cors import CORS
 from spaces_service import get_presigned_view_url, upload_file, delete_object, list_media
+from werkzeug.utils import secure_filename
 
 import os, json, uuid
 os.makedirs("data", exist_ok=True)
@@ -74,7 +75,8 @@ def index():
             "url": a.get("url", f"/stream/{a.get('filename')}"),
             "artist": a.get("artist"),
             "genre": a.get("genre"),
-            "price": a.get("price", 0)
+            "price": a.get("price", 0),
+            "thumb_url": a.get("thumb_url")
         }
         audio_covers.append(cover)
 
@@ -202,13 +204,37 @@ def admin():
             flash("⚠️ Не выбран файл!", "error")
             return redirect(url_for("admin"))
 
-        filename = file.filename
+        filename = secure_filename(file.filename)
+
+        # Загрузка основного файла (в DO Spaces)
         url = upload_file(file, filename)
         if not url:
             flash("❌ Ошибка загрузки в облако!", "error")
             return redirect(url_for("admin"))
 
-        # --- Добавляем в JSON ---
+        # ------------------------------------------------
+        #   ОБРАБОТКА ОБЛОЖКИ ДЛЯ АУДИО
+        # ------------------------------------------------
+        thumb_file = request.files.get("thumb")
+        thumb_url = None
+
+        if thumb_file and thumb_file.filename:
+            thumb_name = secure_filename(thumb_file.filename)
+
+            # путь куда сохраняем
+            save_path = os.path.join("static", "covers", thumb_name)
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+
+            # сохраняем локально
+            thumb_file.save(save_path)
+
+            # url для JSON
+            thumb_url = f"/static/covers/{thumb_name}"
+            print(f"[thumb] сохранена обложка → {thumb_url}")
+
+        # ------------------------------------------------
+        #   ДОБАВЛЕНИЕ В JSON
+        # ------------------------------------------------
         if media_type == "audio":
             artist = request.form.get("artist") or "Unknown"
             genre = request.form.get("genre") or "Unknown"
@@ -225,10 +251,10 @@ def admin():
                 "url": f"/stream/{filename}",
                 "artist": artist,
                 "genre": genre,
-                "price": price
+                "price": price,
+                "thumb_url": thumb_url  # <-- ВОТ!
             })
             save_covers(covers)
-            print(f"[JSON] 🎵 Добавлена запись: {filename}")
 
         elif media_type == "video":
             title = request.form.get("title") or filename
@@ -239,15 +265,13 @@ def admin():
                 "title": title
             })
             save_videos(videos)
-            print(f"[JSON] 🎬 Добавлена запись: {filename}")
 
         flash(f"✅ Файл '{filename}' успешно загружен!", "success")
         return redirect(url_for("admin"))
 
-    # Отображаем список файлов
+    # вывод таблиц
     audios, videos = list_media()
     return render_template("admin.html", covers=audios, videos=videos, ADMIN_USER=ADMIN_USER)
-
 @app.route("/admin/delete/<media_type>/<filename>", methods=["POST"])
 def delete_media(media_type, filename):
     if not session.get("admin_logged_in"):

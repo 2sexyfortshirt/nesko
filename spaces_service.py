@@ -106,7 +106,8 @@ def list_media():
             "url": cover["url"],
             "artist": cover.get("artist"),
             "genre": cover.get("genre"),
-            "price": cover.get("price", 100)
+            "price": cover.get("price", 100),
+            "thumb_url": cover.get("thumb_url")
         })
 
     video_filenames = {v["filename"] for v in videos_metadata}

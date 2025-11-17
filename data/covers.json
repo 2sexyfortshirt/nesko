@@ -4,6 +4,31 @@
     "url": "/stream/PBT.mp3",
     "artist": "TRavis",
     "genre": "Rap",
-    "price": 3000
+    "price": 3000,
+    "thumb_url": "static/covers/PBT.jpg"
+  },
+  {
+    "filename": "50 Cent, Nate Dogg - 21 Questions.mp3",
+    "url": "/stream/50 Cent, Nate Dogg - 21 Questions.mp3",
+    "artist": "50CENT",
+    "genre": "Rap",
+    "price": 3200,
+    "thumb_url": "static/covers/50 Cent, Nate Dogg - 21 Questions.jpg"
+  },
+  {
+    "filename": "50 Cent - God Gave Me Style.mp3",
+    "url": "/stream/50 Cent - God Gave Me Style.mp3",
+    "artist": "50CENT",
+    "genre": "Rap",
+    "price": 3200,
+    "thumb_url": "static/covers/50 Cent - God Gave Me Style.jpg"
+  },
+  {
+    "filename": "50_Cent_-_Amusement_Park.mp3",
+    "url": "/stream/50_Cent_-_Amusement_Park.mp3",
+    "artist": "50CENT",
+    "genre": "Rap",
+    "price": 3200,
+    "thumb_url": "/static/covers/IMG_8988.jpg"
   }
 ]

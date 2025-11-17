@@ -146,6 +146,11 @@
             <label>Цена (₺)</label>
             <input type="number" step="0.01" name="price" placeholder="Например 3.99" />
           </div>
+          <div class="two" id="thumb_wrap">
+          <label>Обложка (jpg/png)</label>
+          <input type="file" name="thumb" accept="image/*" />
+          </div>
+
           <div class="two" id="title_wrap" style="display:none">
             <label>Название видео</label>
             <input type="text" name="title" placeholder="Название (для видео)" />
@@ -222,20 +227,23 @@
   const artistWrap = document.getElementById('artist_wrap');
   const genreWrap = document.getElementById('genre_wrap');
   const priceWrap = document.getElementById('price_wrap');
+const thumbWrap = document.getElementById('thumb_wrap');
 
-  function updateFields(){
+function updateFields(){
     if(mediaSelect.value === 'audio'){
       titleWrap.style.display = 'none';
       artistWrap.style.display = 'block';
       genreWrap.style.display = 'block';
       priceWrap.style.display = 'block';
+      thumbWrap.style.display = 'block';
     } else {
       titleWrap.style.display = 'block';
       artistWrap.style.display = 'none';
       genreWrap.style.display = 'none';
       priceWrap.style.display = 'none';
+      thumbWrap.style.display = 'none';
     }
-  }
+}
   mediaSelect.addEventListener('change', updateFields);
   updateFields();
 </script>
