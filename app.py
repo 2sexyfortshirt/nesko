@@ -95,6 +95,11 @@ from flask_cors import cross_origin
 def stream(key):
     try:
         obj = client.get_object(Bucket=SPACES_BUCKET, Key=key)
+        def generate():
+            for chunk in obj['Body'].iter_chunks(chunk_size=1024*64):
+                yield chunk
+        content_type = "audio/mpeg" if key.lower().endswith(".mp3") else "video/mp4"
+        return Response(generate(), content_type=content_type)
         file_size = obj['ContentLength']
         range_header = request.headers.get('Range')
 
@@ -136,16 +141,9 @@ def stream(key):
         )
 
     except client.exceptions.NoSuchKey:
+        return "File not found", 404
         abort(404)
 
-
-@app.route("/fake-buy/<path:filename>", methods=["POST"])
-def fake_buy(filename):
-    return jsonify({
-        "success": True,
-        "download_url": f"/stream/{filename}"
-    })
-# ===== скачивание по токену =====
 @app.route("/download/<token>")
 def download(token):
     if token not in download_tokens:
