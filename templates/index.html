@@ -76,6 +76,12 @@ h1{font-family:'Playfair Display', serif;font-size:52px;margin:8px 0 6px;color:#
 .player-expanded .artist{font-size:16px}
 .player-expanded .controls{display:flex;gap:10px;align-items:center}
 .player-expanded.hidden{display:none}
+.player-expanded {
+  pointer-events: none;
+}
+.player-expanded * {
+  pointer-events: auto; /* только кнопки управления */
+}
 
 .right-column{display:flex;flex-direction:column;gap:16px}
 .section-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:6px}
@@ -194,7 +200,7 @@ h1{font-family:'Playfair Display', serif;font-size:52px;margin:8px 0 6px;color:#
 </div>
 
 <script>
-// helper
+// ======= HELPERS =======
 const formatTime = t => {
   t = Math.floor(t);
   const m = Math.floor(t/60);
@@ -202,9 +208,11 @@ const formatTime = t => {
   return `${m}:${s<10? '0'+s : s}`;
 };
 
+// ======= ELEMENTS =======
 const cards = Array.from(document.querySelectorAll('.card'));
 const modal = document.getElementById('buy-modal');
 const downloadLink = document.getElementById('download-link');
+
 const player = document.getElementById('player-expanded');
 const playerThumb = document.getElementById('player-thumb');
 const playerArtist = document.getElementById('player-artist');
@@ -215,8 +223,10 @@ const playerTime = document.getElementById('player-time');
 let expandedAudio = null;
 let fragmentTimeout = null;
 
+// ======= MODAL =======
 function closeModal(){ modal.style.display = 'none'; }
 
+// ======= AUDIO CARDS =======
 cards.forEach(card => {
   const audio = card.querySelector('.audio-player');
   const playBtn = card.querySelector('.play-btn');
@@ -225,10 +235,12 @@ cards.forEach(card => {
   const durationEl = card.querySelector('.duration');
   const buyBtn = card.querySelector('.buy-btn');
 
+  // Set duration when metadata loaded
   audio.addEventListener('loadedmetadata', () => {
     durationEl.textContent = formatTime(Math.min(audio.duration || 30, 30));
   });
 
+  // Stop this audio
   const stopAudio = () => {
     if(!audio) return;
     audio.pause();
@@ -240,6 +252,7 @@ cards.forEach(card => {
     if(expandedAudio === audio) collapsePlayer();
   };
 
+  // Update progress
   const updateProgress = () => {
     if(!audio || audio.paused) return;
     const time = Math.min(audio.currentTime,30);
@@ -249,8 +262,21 @@ cards.forEach(card => {
     requestAnimationFrame(updateProgress);
   };
 
+  // Play / Pause button
   playBtn.addEventListener('click', async () => {
-    document.querySelectorAll('audio').forEach(a=>{ if(a!==audio){ a.pause(); a.currentTime = 0; } });
+    // Pause all other audios (ignore video)
+    document.querySelectorAll('audio').forEach(a=>{
+      if(a !== audio){
+        a.pause();
+        a.currentTime = 0;
+        const otherCard = a.closest('.card');
+        if(otherCard){
+          const btn = otherCard.querySelector('.play-btn');
+          if(btn) btn.textContent='▶';
+        }
+      }
+    });
+
     if(audio.paused){
       try{ await audio.play(); } catch(e){ console.warn('Playback failed', e); }
       playBtn.textContent = '⏸';
@@ -260,13 +286,16 @@ cards.forEach(card => {
     } else stopAudio();
   });
 
+  // Progress bar input
   progressBar.addEventListener('input', ()=>{
     audio.currentTime = parseFloat(progressBar.value);
     currentTimeEl.textContent = formatTime(audio.currentTime);
   });
 
+  // Ended
   audio.addEventListener('ended', stopAudio);
 
+  // Buy button
   if(buyBtn){
     buyBtn.addEventListener('click', async ()=>{
       const filename = buyBtn.dataset.filename;
@@ -284,6 +313,7 @@ cards.forEach(card => {
   }
 });
 
+// ======= EXPANDED PLAYER =======
 function expandPlayer(card,audio){
   const thumbImg = card.querySelector('.cover-thumb img');
   playerThumb.src = thumbImg ? thumbImg.src : '';
@@ -300,12 +330,36 @@ function collapsePlayer(){
   expandedAudio = null;
 }
 
+// Play/Pause button on expanded player
 playerPlay.addEventListener('click', ()=>{
   if(!expandedAudio) return;
   if(expandedAudio.paused) { expandedAudio.play(); playerPlay.textContent='⏸'; }
   else { expandedAudio.pause(); playerPlay.textContent='▶'; }
 });
 
+// ======= VIDEO SAFETY FOR IOS =======
+// Ensure videos can play while audio exists
+document.querySelectorAll('video').forEach(video=>{
+  video.addEventListener('play', ()=>{
+    // Pause all audios except this card (ignore video)
+    document.querySelectorAll('audio').forEach(a=>{
+      if(!a.paused) a.pause();
+      const otherCard = a.closest('.card');
+      if(otherCard){
+        const btn = otherCard.querySelector('.play-btn');
+        if(btn) btn.textContent='▶';
+      }
+    });
+  });
+});
+
+// ======= POINTER EVENTS FIX ======
+// Allow clicks on video even if player overlay exists
+player.style.pointerEvents = 'none';
+player.querySelectorAll('*').forEach(el=>{
+  el.style.pointerEvents = 'auto';
+});
 </script>
+
 </body>
 </html>
