@@ -1,1 +1,1 @@
-web: gunicorn nesko.main:app
+web: gunicorn main:app
