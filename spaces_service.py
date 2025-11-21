@@ -1,51 +1,49 @@
-
 import threading
-import json
-DATA_DIR = "data"
-
-# Заглушка для старых вызовов isAlive()
-if not hasattr(threading.Thread, "isAlive"):
-    threading.Thread.isAlive = threading.Thread.is_alive
 import os
 import boto3
 import urllib.parse
 from dotenv import load_dotenv
+from models import Audio, Video, CountryCategory
+from config import db
+
+
+# Заглушка для старых вызовов isAlive()
+if not hasattr(threading.Thread, "isAlive"):
+    threading.Thread.isAlive = threading.Thread.is_alive
 
 load_dotenv()
 
-print("SPACES_KEY:", os.getenv("SPACES_KEY"))
-print("SPACES_SECRET:", os.getenv("SPACES_SECRET"))
-print("SPACES_BUCKET:", os.getenv("SPACES_BUCKET"))
-
-# ==== Параметры DigitalOcean Spaces из переменных окружения ====
+# ==== Переменные окружения ====
 SPACES_KEY = os.getenv("SPACES_KEY")
 SPACES_SECRET = os.getenv("SPACES_SECRET")
-SPACES_REGION = os.getenv("SPACES_REGION", "fra1")  # например fra1
-
-SPACES_ENDPOINT = os.getenv("SPACES_ENDPOINT")
+SPACES_REGION = os.getenv("SPACES_REGION", "fra1")
 SPACES_BUCKET = os.getenv("SPACES_BUCKET")
+SPACES_ENDPOINT = os.getenv("SPACES_ENDPOINT")   # должен быть https://fra1.digitaloceanspaces.com
 
-if not all([SPACES_KEY, SPACES_SECRET, SPACES_BUCKET,SPACES_ENDPOINT,SPACES_REGION]):
-    print("SPACES_KEY:", SPACES_KEY)
-    print("SPACES_SECRET:", SPACES_SECRET)
-    print("SPACES_BUCKET:", SPACES_BUCKET)
-    print("SPACES_ENDPOINT:", SPACES_ENDPOINT)
+# Проверка переменных
+if not all([SPACES_KEY, SPACES_SECRET, SPACES_BUCKET, SPACES_ENDPOINT]):
+    raise ValueError("❌ Не все переменные окружения заданы в .env!")
 
-    raise ValueError("Не заданы переменные окружения для DigitalOcean Spaces")
-
-# ==== Создаем клиент S3 (S3-совместимый) ====
+# ==== DigitalOcean Spaces S3 клиент ====
 session = boto3.session.Session()
 client = session.client(
-    's3',
+    "s3",
     region_name=SPACES_REGION,
-    endpoint_url=f'https://{SPACES_REGION}.digitaloceanspaces.com',
+    endpoint_url=SPACES_ENDPOINT,   # Используем правильный endpoint!
     aws_access_key_id=SPACES_KEY,
-    aws_secret_access_key=SPACES_SECRET
+    aws_secret_access_key=SPACES_SECRET,
 )
 
+# ==== Расширения ====
+AUDIO_EXTENSIONS = (".mp3", ".wav", ".ogg", ".aac", ".flac")
+VIDEO_EXTENSIONS = (".mp4", ".webm", ".mov", ".avi", ".mkv")
 
-VIDEO_EXTENSIONS = (".mp4", ".mov", ".avi", ".mkv")
-AUDIO_EXTENSIONS = (".mp3", ".wav", ".aac", ".ogg", ".flac")
+
+# ==== Генерация публичной ссылки ====
+def build_public_url(key):
+    return f"https://{SPACES_BUCKET}.{SPACES_REGION}.digitaloceanspaces.com/{key}"
+
+
 # ==== Загрузка файла ====
 def upload_file(file_obj, filename):
     """
@@ -65,7 +63,10 @@ def delete_object(filename):
     """
     client.delete_object(Bucket=SPACES_BUCKET, Key=filename)
 
-# ==== Получение временной ссылки (presigned) ====
+
+
+
+# ==== Presigned URL ====
 def get_presigned_view_url(filename, expires_in=3600):
     try:
         return client.generate_presigned_url(
@@ -74,88 +75,90 @@ def get_presigned_view_url(filename, expires_in=3600):
             ExpiresIn=expires_in,
         )
     except Exception as e:
-        print(f"Ошибка генерации presigned URL: {e}")
+        print(f"Ошибка presigned URL: {e}")
         return None
 
-def list_media():
-    """Возвращает список аудио и видео файлов из JSON и DO Spaces"""
-    videos_path = os.path.join(DATA_DIR, "videos.json")
-    covers_path = os.path.join(DATA_DIR, "covers.json")
 
-    # --- Загружаем JSON ---
-    try:
-        with open(covers_path, "r", encoding="utf-8") as f:
-            covers_metadata = json.load(f)
-    except FileNotFoundError:
-        covers_metadata = []
-
-    try:
-        with open(videos_path, "r", encoding="utf-8") as f:
-            videos_metadata = json.load(f)
-    except FileNotFoundError:
-        videos_metadata = []
-
+# ==== Основной метод — загрузка аудио/видео из Spaces в БД ====
+def list_media(sync_spaces=True):
     audios = []
     videos = []
 
-    # --- Добавляем данные из JSON ---
-    audio_filenames = {cover["filename"] for cover in covers_metadata}
-    for cover in covers_metadata:
+    # Получаем текущие записи из БД
+    db_audios = {a.filename: a for a in Audio.query.all()}
+    db_videos = {v.filename: v for v in Video.query.all()}
+    categories_map = {c.id: c.name for c in CountryCategory.query.all()}
+
+    if sync_spaces:
+        # Получаем список объектов из DO Spaces
+        resp = client.list_objects_v2(Bucket=SPACES_BUCKET)
+        keys = [obj['Key'] for obj in resp.get('Contents', [])]
+
+        for key in keys:
+            ext = os.path.splitext(key)[1].lower()
+            if ext in AUDIO_EXTENSIONS and key not in db_audios:
+                # Добавляем новое аудио в БД
+                new_audio = Audio(
+                    filename=key,
+                    url=build_public_url(key),
+                    artist="Unknown",
+                    genre="Unknown",
+                    price=0,
+                    category_id=None
+                )
+                db.session.add(new_audio)
+                db_audios[key] = new_audio
+
+            elif ext in VIDEO_EXTENSIONS and key not in db_videos:
+                # Добавляем новое видео в БД
+                new_video = Video(
+                    filename=key,
+                    url=build_public_url(key),
+                    title=os.path.splitext(os.path.basename(key))[0],
+                    category_id=None
+                )
+                db.session.add(new_video)
+                db_videos[key] = new_video
+
+        db.session.commit()
+
+    # Подготавливаем списки для вывода
+    for a in db_audios.values():
         audios.append({
-            "filename": cover["filename"],
-            "url": cover["url"],
-            "artist": cover.get("artist"),
-            "genre": cover.get("genre"),
-            "price": cover.get("price", 100),
-            "thumb_url": cover.get("thumb_url")
+            "filename": a.filename,
+            "url": a.url,
+            "artist": a.artist,
+            "genre": a.genre,
+            "price": a.price,
+            "thumb_url": a.thumb_url,
+            "category_id": a.category_id,
+            "category_name": categories_map.get(a.category_id, "Без категории")
         })
 
-    video_filenames = {v["filename"] for v in videos_metadata}
-    for video in videos_metadata:
+    for v in db_videos.values():
         videos.append({
-            "filename": video["filename"],
-            "url": video["url"],
-            "title": video.get("title", os.path.splitext(video["filename"])[0])
+            "filename": v.filename,
+            "url": v.url,
+            "title": v.title,
+            "category_id": v.category_id,
+            "category_name": categories_map.get(v.category_id, "Без категории")
         })
 
-    # --- Проверяем файлы из DO Spaces ---
-    resp = client.list_objects_v2(Bucket=SPACES_BUCKET)
-    for obj in resp.get('Contents', []):
-        key = obj['Key']
-        filename = os.path.basename(key)
-
-        if key.lower().endswith(('.mp3', '.wav', '.ogg')):
-            if filename not in audio_filenames:
-                audios.append({
-                    "filename": filename,
-                    "url": f"/stream/{key}",
-                    "artist": "artist",
-                    "genre": "genre",
-                    "price": 100
-                })
-
-        elif key.lower().endswith(('.mp4', '.webm')):
-            if filename not in video_filenames:
-                new_video = {
-                    "filename": filename,
-                    "url": f"/stream/{key}",
-                    "title": os.path.splitext(filename)[0]
-                }
-                videos.append(new_video)
-                videos_metadata.append(new_video)  # 👈 Добавляем в JSON-данные тоже
-
-    # --- Сохраняем обновлённый videos.json ---
-    with open(videos_path, "w", encoding="utf-8") as f:
-        json.dump(videos_metadata, f, ensure_ascii=False, indent=2)
-
+    print(f"Найдено аудио: {len(audios)}, видео: {len(videos)}")
     return audios, videos
+    if __name__ == "__main__":
+        from main import app  # импортируем Flask-приложение для контекста
 
 
-if __name__ == "__main__":
-    audios, videos = list_media()
-    print("🎬 covers:")
-    for a in audios:
-        print(a)
-    print("\n🎵 video:")
-    for v in videos:
-        print(v)
+    with app.app_context():
+    # Просто вызываем функцию, которая уже определена в этом файле
+        audios, videos = list_media()
+
+        print("🎬 Аудио:")
+        for a in audios:
+            print(f"{a['filename']} | {a['artist']} | {a['genre']} | {a['category_name']}")
+
+        print("\n🎵 Видео:")
+        for v in videos:
+            print(f"{v['filename']} | {v['title']} | {v['category_name']}")
+
