@@ -116,8 +116,20 @@ def index():
             cat_data["videos"].append(item)
 
         result.append(cat_data)
+    country_code = {
+        "Turkey": "tr",
+        "Russia": "ru",
+        "USA": "us",
+        "Germany": "de",
+        "France": "fr",
+        "Italy": "it",
+        "Spain": "es",
+        "Poland": "pl",
+        "Ukraine": "ua"
+        # ... если нужны ещё — я добавлю
+    }
 
-    return render_template("index.html", categories=result, query=query)
+    return render_template("index.html", categories=result, query=query,country_code=country_code)
 
 download_tokens = {}
 from flask_cors import cross_origin
