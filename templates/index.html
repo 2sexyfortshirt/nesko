@@ -1,11 +1,15 @@
+
+
+
 <!DOCTYPE html>
+
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Медиа по категориям</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
 <style>
 :root{
   --bg-1:#09030a; --bg-2:#120021; --accent-1:#c400ff; --accent-2:#00ffe7;
@@ -49,37 +53,40 @@ h1{font-family:'Playfair Display', serif;font-size:48px;margin:0 0 8px;color:#ff
 
 footer{margin-top:60px;text-align:center;color:var(--muted);font-size:14px}
 footer a{color:#fff;margin:0 10px;cursor:pointer;text-decoration:underline}
-
-
-.flag-select {
-  padding: 8px;
-  font-size: 16px;
-}
-
-.flag-option {
+.country-selector {
   display: flex;
-  align-items: center;
-}
-
-.flag-option img {
-  width: 20px;
-  height: 15px;
-  margin-right: 8px;
-}
-
-.country-filter {
-  margin: 15px 0 20px;
-  display: flex;
-  align-items: center;
   gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.country-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: none;
+  background: #222;
+  color: white;
+  cursor: pointer;
+  border-radius: 6px;
 }
 
-.country-filter label {
-  font-weight: bold;
+.country-btn img {
+  width: 24px;
+  height: 18px;
+  object-fit: cover;
 }
+
+
+.country-btn.active {
+  background: #444;
+  border-color: white;
+}
+
 
 
 </style>
+
 </head>
 <body>
 
@@ -90,162 +97,94 @@ footer a{color:#fff;margin:0 10px;cursor:pointer;text-decoration:underline}
     <button type="submit">🔍</button>
   </form>
 </header>
-<main>
 
+<div class="country-selector">
   {% for category in categories %}
-  <section class="category"
-           data-country="{{ category.name|lower }}"
-           data-flag="https://flagcdn.com/48x36/{{ country_code[category.name]|lower }}.png">
+    <button class="country-btn" data-target="{{ category.name|lower }}">
+     <img src="https://flagcdn.com/24x18/{{ country_code[category.name]|lower }}.png">
 
+
+      {{ category.name }}
+    </button>
+  {% endfor %}
+</div>
+
+<main>
+  {% for category in categories %}
+  <section class="category" data-country="{{ category.name|lower }}" style="display:none;">
     <h2>{{ category.name }}</h2>
 
-    {% if category.audios %}
-    <div class="audio-list">
-      {% for a in category.audios %}
-      <div class="card" data-filename="{{ a.filename }}">
-        {% if a.thumb_url %}
-        <img src="{{ a.thumb_url }}" alt="{{ a.filename }}">
-        {% endif %}
-        <div class="artist">{{ a.artist }}</div>
-        <div class="filename">{{ a.filename }}</div>
-        {% if a.genre %}
-        <div class="genre">{{ a.genre }}</div>
-        {% endif %}
-        <audio src="{{ a.url }}" preload="metadata" class="audio-player"></audio>
-        <button class="play-btn">▶ Play</button>
-        <button class="buy-btn" data-filename="{{ a.filename }}">
-          💳 Купить ${{ (a.price/100)|round(2) }}
-        </button>
-      </div>
-      {% endfor %}
-    </div>
+{% if category.audios %}
+<div class="audio-list">
+  {% for a in category.audios %}
+  <div class="card" data-filename="{{ a.filename }}">
+    {% if a.thumb_url %}
+    <img src="{{ a.thumb_url }}" alt="{{ a.filename }}">
     {% endif %}
+    <div class="artist">{{ a.artist }}</div>
+    <div class="filename">{{ a.filename }}</div>
+    {% if a.genre %}
+    <div class="genre">{{ a.genre }}</div>
+    {% endif %}
+    <audio src="{{ a.url }}" preload="metadata" class="audio-player"></audio>
+    <button class="play-btn">▶ Play</button>
+    <button class="buy-btn" data-filename="{{ a.filename }}">
+      💳 Купить ${{ (a.price/100)|round(2) }}
+    </button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
 
-    {% if category.videos %}
-    <div class="video-list" style="margin-top:20px;">
-      {% for v in category.videos %}
-      <div class="card video-card">
-        <video src="{{ v.url }}" controls></video>
-        <div class="filename">{{ v.filename }}</div>
-        {% if v.title %}
-        <div class="artist">{{ v.title }}</div>
-        {% endif %}
-      </div>
-      {% endfor %}
-    </div>
+{% if category.videos %}
+<div class="video-list" style="margin-top:20px;">
+  {% for v in category.videos %}
+  <div class="card video-card">
+    <video src="{{ v.url }}" controls></video>
+    <div class="filename">{{ v.filename }}</div>
+    {% if v.title %}
+    <div class="artist">{{ v.title }}</div>
     {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
 
   </section>
   {% endfor %}
 </main>
 
+<!-- Футер -->
 
-<!-- ===== Футер с модалками и логотипами ===== -->
 <footer>
   <a onclick="openLegal('about')">Hakkımızda</a>
   <a onclick="openLegal('delivery')">Teslimat ve İade</a>
   <a onclick="openLegal('privacy')">Gizlilik Sözleşmesi</a>
   <a onclick="openLegal('distance')">Mesafeli Satış</a>
 
-  <!-- Payment Logos -->
   <div style="margin-top: 18px; display: flex; justify-content: center; gap: 18px; align-items: center; opacity: 0.85;">
-
-<img src="{{ url_for('static', filename='logo_band_colored@1X.png') }}" alt="iyzico" style="height:28px;">
-
+    <img src="{{ url_for('static', filename='logo_band_colored@1X.png') }}" alt="iyzico" style="height:28px;">
   </div>
 </footer>
 
-<div id="legal-about" class="legal-modal">
+<!-- Legal Modals -->
+
+{% for type, title, content in [('about','Hakkımızda','...'),('delivery','Teslimat ve İade','...'),('privacy','Gizlilik Sözleşmesi','...'),('distance','Mesafeli Satış','...')] %}
+
+<div id="legal-{{ type }}" class="legal-modal">
   <div class="legal-content">
-    <h2>Hakkımızda</h2>
-    <p>Bağımsız bir müzik yapımcısı ve besteciyim. Bu web sitesi üzerinden özgün müzik çalışmalarımı dijital formatta satın alabilirsiniz.</p>
-    <p>Hazırladığım müzikler; video içerikleri, oyunlar, reklamlar, sosyal medya projeleri ve kişisel kullanım için uygundur (seçilen lisansa bağlı olarak).</p>
-    <p>Amacım, projelerinize profesyonel bir ses tasarımı ve kaliteli müzik desteği sağlamaktır. Bu site üzerinden yapılan tüm satışlar dijital ürün kapsamındadır.</p>
-    <p>İletişim: <a href="mailto:nesko168@icloud.com">nesko168@icloud.com</a></p>
-    <button class="legal-close" onclick="closeLegal('about')">Kapat</button>
+    <h2>{{ title }}</h2>
+    <p>{{ content }}</p>
+    <button class="legal-close" onclick="closeLegal('{{ type }}')">Kapat</button>
   </div>
 </div>
-
-<div id="legal-delivery" class="legal-modal">
-  <div class="legal-content">
-    <h2>Teslimat ve İade Şartları</h2>
-
-    <p>
-      <b>Dijital Ürün Teslimatı</b><br>
-      – Ödeme başarıyla tamamlandıktan sonra ürünün indirme bağlantısı otomatik olarak e-posta adresinize gönderilir.<br>
-      – Ürün tamamen dijital olarak teslim edilir, fiziksel bir gönderim yoktur.
-    </p>
-
-    <p>
-      <b>İade Koşulları</b><br>
-      – Dijital ürünlerde indirme bağlantısı sağlandıktan sonra iade yapılamaz.<br>
-      – Dosya bozuk veya indirilemez durumda ise bizimle iletişime geçebilirsiniz:<br>
-      <a href="mailto:nesko168@icloud.com">nesko168@icloud.com</a>
-    </p>
-
-    <button class="legal-close" onclick="closeLegal('delivery')">Kapat</button>
-  </div>
-</div>
-
-<div id="legal-privacy" class="legal-modal">
-  <div class="legal-content">
-    <h2>Gizlilik Sözleşmesi</h2>
-
-    <p>
-      <b>Toplanan Bilgiler:</b><br>
-      – E-posta adresi<br>
-      – İsim (gerektiğinde)<br>
-      – Ödeme bilgileri (iyzico tarafından işlenir, tarafımızda saklanmaz)
-    </p>
-
-    <p>
-      <b>Bilgilerin Kullanım Amaçları:</b><br>
-      – Dijital ürünün teslim edilmesi<br>
-      – Satın alma onayı ve bilgilendirme<br>
-      – Teknik destek sağlanması (destek için:
-      <a href="mailto:mozjfima@gmail.com">mozjfima@gmail.com</a>)
-    </p>
-
-    <p>Kişisel verileriniz üçüncü kişilerle paylaşılmaz. Ödeme işlemleri iyzico tarafından güvenli şekilde işlenir.</p>
-
-    <button class="legal-close" onclick="closeLegal('privacy')">Kapat</button>
-  </div>
-</div>
-
-<div id="legal-distance" class="legal-modal">
-  <div class="legal-content">
-    <h2>Mesafeli Satış Sözleşmesi</h2>
-
-    <p><b>Ürün Türü:</b> Dijital müzik içeriği (MP3 / WAV).</p>
-
-    <p>
-      <b>Hizmetin İfası:</b><br>
-      Ödeme tamamlandıktan sonra dijital ürünün indirme bağlantısı e-posta ile gönderilir.
-      Bu aşamada hizmet tamamen ifa edilmiş sayılır.
-    </p>
-
-    <p>
-      <b>Cayma Hakkı:</b><br>
-      6502 sayılı kanun gereğince dijital içerik sunulan hizmetlerde; tüketici ürünü teslim aldıktan sonra cayma hakkı kullanamaz.
-      Bu nedenle indirme bağlantısı gönderildikten sonra iade mümkün değildir.
-    </p>
-
-    <p>
-      <b>Tarafların Yükümlülükleri:</b><br>
-      Satıcı; doğru ve çalışır durumda dijital dosyayı sağlamakla yükümlüdür.<br>
-      Alıcı; doğru e-posta bilgisi vermekle ve dijital ürünün niteliğini kabul etmekle yükümlüdür.<br>
-      Satıcı iletişim e-posta adresi:
-      <a href="mailto:mozjfima@gmail.com">mozjfima@gmail.com</a>
-    </p>
-
-    <button class="legal-close" onclick="closeLegal('distance')">Kapat</button>
-  </div>
-</div>
-
+{% endfor %}
 
 <div class="particles"></div>
 
-<!-- modal -->
+<!-- Buy Modal -->
+
 <div id="buy-modal" class="modal">
   <div class="panel">
     <div id="modal-message">✅ Оплата успешно имитирована!</div>
@@ -257,83 +196,100 @@ footer a{color:#fff;margin:0 10px;cursor:pointer;text-decoration:underline}
 </div>
 
 <script>
-// ===== PARTICLES =====
-const particlesContainer = document.querySelector('.particles');
-for(let i=0;i<40;i++){
-  const span = document.createElement('span');
-  span.style.top = (Math.random()*100)+'%';
-  span.style.left = (Math.random()*100)+'%';
-  span.style.width = span.style.height = (2+Math.random()*3)+'px';
-  span.style.animationDuration = (3+Math.random()*5)+'s';
-  particlesContainer.appendChild(span);
-}
+document.addEventListener("DOMContentLoaded", () => {
+  // --- Фильтрация стран ---
+  const buttons = document.querySelectorAll(".country-btn");
+  const categories = document.querySelectorAll(".category");
 
-// ===== AUDIO PLAYERS =====
-document.querySelectorAll('.play-btn').forEach(btn=>{
-  btn.addEventListener('click',e=>{
-    const card = btn.closest('.card');
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const country = btn.dataset.target;
+      categories.forEach(cat => {
+        cat.style.display = (cat.dataset.country === country) ? "block" : "none";
+      });
+    });
+  });
+
+  // --- Частицы ---
+  const particlesContainer = document.querySelector('.particles');
+  for(let i=0;i<40;i++){
+    const span = document.createElement('span');
+    span.style.top = (Math.random()*100)+'%';
+    span.style.left = (Math.random()*100)+'%';
+    span.style.width = span.style.height = (2+Math.random()*3)+'px';
+    span.style.animationDuration = (3+Math.random()*5)+'s';
+    particlesContainer.appendChild(span);
+  }
+
+  // --- Аудио плееры с отображением длительности ---
+  document.querySelectorAll('.card').forEach(card=>{
     const audio = card.querySelector('audio');
-    if(audio.paused){ audio.play(); btn.textContent='⏸ Pause'; }
-    else { audio.pause(); btn.textContent='▶ Play'; }
-  });
-});
+    const playBtn = card.querySelector('.play-btn');
 
-// ===== BUY MODAL =====
-document.querySelectorAll('.buy-btn').forEach(btn=>{
-  btn.addEventListener('click',e=>{
-    const filename = btn.dataset.filename;
-    document.getElementById('download-link').href = '/stream/' + filename;
-    document.getElementById('buy-modal').style.display='flex';
+    // Создаем элемент для времени
+    const timeDisplay = document.createElement('div');
+    timeDisplay.className = 'time-display';
+    timeDisplay.textContent = '00:00 / 00:00';
+    card.appendChild(timeDisplay);
+
+    // Обновление времени
+    audio.addEventListener('loadedmetadata', () => {
+      const total = formatTime(audio.duration);
+      timeDisplay.textContent = `00:00 / ${total}`;
+    });
+
+    audio.addEventListener('timeupdate', () => {
+      const current = formatTime(audio.currentTime);
+      const total = formatTime(audio.duration);
+      timeDisplay.textContent = `${current} / ${total}`;
+    });
+
+    // Play/pause
+    playBtn.addEventListener('click', () => {
+      // Пауза всех остальных аудио
+      document.querySelectorAll('audio').forEach(a=>{
+        if(a !== audio){
+          a.pause();
+          const otherBtn = a.closest('.card').querySelector('.play-btn');
+          if(otherBtn) otherBtn.textContent='▶ Play';
+        }
+      });
+
+      if(audio.paused){
+        audio.play().catch(err=>console.log("Play error:", err));
+        playBtn.textContent='⏸ Pause';
+      } else {
+        audio.pause();
+        playBtn.textContent='▶ Play';
+      }
+    });
   });
-});
+
+  function formatTime(sec){
+    if(isNaN(sec)) return "00:00";
+    const m = Math.floor(sec/60).toString().padStart(2,'0');
+    const s = Math.floor(sec%60).toString().padStart(2,'0');
+    return `${m}:${s}`;
+  }
+
+  // --- Buy modal ---
+  document.querySelectorAll('.buy-btn').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const filename = btn.dataset.filename;
+      document.getElementById('download-link').href = '/stream/' + filename;
+      document.getElementById('buy-modal').style.display='flex';
+    });
+  });
+
+
+
+}); // DOMContentLoaded
+
 function closeModal(){ document.getElementById('buy-modal').style.display='none'; }
-</script>
-<script>
 function openLegal(type){ document.getElementById('legal-'+type).style.display='flex'; }
 function closeLegal(type){ document.getElementById('legal-'+type).style.display='none'; }
 </script>
 
-<script>
-// ---------- Добавление флага слева в select ----------
-const select = document.getElementById("countrySelect");
-
-function updateFlag() {
-    const selected = select.options[select.selectedIndex];
-    const flagUrl = selected.dataset.flag;
-
-    if (flagUrl) {
-        select.style.backgroundImage = `url(${flagUrl})`;
-        select.style.backgroundRepeat = "no-repeat";
-        select.style.backgroundPosition = "6px center";
-        select.style.backgroundSize = "20px 15px";
-        select.style.paddingLeft = "34px";
-    } else {
-        select.style.backgroundImage = "none";
-        select.style.paddingLeft = "8px";
-    }
-}
-
-select.addEventListener("change", updateFlag);
-updateFlag();
-
-// ---------- Фильтрация категорий ----------
-select.addEventListener("change", function () {
-    let selected = this.value;
-    let sections = document.querySelectorAll(".category");
-
-    sections.forEach(sec => {
-        let country = sec.getAttribute("data-country");
-
-        if (selected === "all" || selected === country) {
-            sec.style.display = "block";
-        } else {
-            sec.style.display = "none";
-        }
-    });
-});
-</script>
-
-
-
 </body>
 </html>
+

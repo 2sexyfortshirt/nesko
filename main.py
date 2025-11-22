@@ -33,14 +33,12 @@ app.secret_key = os.getenv("FLASK_SECRET", "supersecret_local_change_me")
 
 # ---- Инициализация расширений ----
 
+
 db.init_app(app)
 migrate = Migrate(app, db)
 CORS(app)
 
-# ---- Создание таблиц (только если не используешь миграции) ----
 
-
-# ---- Пути и директории ----
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 os.makedirs("data", exist_ok=True)
@@ -54,13 +52,14 @@ ADMIN_PASS = os.getenv("ADMIN_PASS", "neSko567___2341")
 def index():
     query = request.args.get("q", "").strip().lower()
 
-    # Загружаем данные из DO Spaces + синхронизируем БД
+    # Загружаем данные из DO Spaces
     media_audios, media_videos = list_media()
 
-    # Карты для поиска данных по filename
+    # Карты для быстрого доступа
     media_audio_map = {a["filename"].lower(): a for a in media_audios}
     media_video_map = {v["filename"].lower(): v for v in media_videos}
 
+    # Загружаем все страны
     categories = CountryCategory.query.all()
     result = []
 
@@ -71,14 +70,14 @@ def index():
             "videos": []
         }
 
-        # ----------- АУДИО -----------
+        # ---------- АУДИО ----------
         for a in cat.audios:
             key = a.filename.lower()
             m = media_audio_map.get(key, {})
 
             item = {
                 "filename": a.filename,
-                "url": a.url or m.get("url"),   # Public URL уже в БД
+                "url": a.url or m.get("url"),
                 "artist": a.artist,
                 "genre": a.genre,
                 "price": a.price,
@@ -94,7 +93,7 @@ def index():
 
             cat_data["audios"].append(item)
 
-        # ----------- ВИДЕО -----------
+        # ---------- ВИДЕО ----------
         for v in cat.videos:
             key = v.filename.lower()
             m = media_video_map.get(key, {})
@@ -114,23 +113,85 @@ def index():
             cat_data["videos"].append(item)
 
         result.append(cat_data)
+
+    # Флаги
     country_code = {
-        "Turkey": "tr",
-        "Russia": "ru",
-        "USA": "us",
-        "Germany": "de",
-        "France": "fr",
-        "Italy": "it",
-        "Spain": "es",
-        "Poland": "pl",
-        "Ukraine": "ua"
-        # ... если нужны ещё — я добавлю
+        "Россия": "ru",
+        "Турция": "tr",
+        "США": "us",
+        "Германия": "de",
+        "Франция": "fr",
+        "Италия": "it",
+        "Испания": "es",
+        "Португалия": "pt",
+        "Украина": "ua",
+        "Казахстан": "kz",
+        "Беларусь": "by",
+        "Польша": "pl",
+        "Чехия": "cz",
+        "Словакия": "sk",
+        "Сербия": "rs",
+        "Хорватия": "hr",
+        "Босния и Герцеговина": "ba",
+        "Словения": "si",
+        "Швейцария": "ch",
+        "Австрия": "at",
+        "Нидерланды": "nl",
+        "Бельгия": "be",
+        "Люксембург": "lu",
+        "Великобритания": "gb",
+        "Ирландия": "ie",
+        "Дания": "dk",
+        "Швеция": "se",
+        "Норвегия": "no",
+        "Финляндия": "fi",
+        "Эстония": "ee",
+        "Латвия": "lv",
+        "Литва": "lt",
+        "Грузия": "ge",
+        "Армения": "am",
+        "Азербайджан": "az",
+        "Узбекистан": "uz",
+        "Таджикистан": "tj",
+        "Киргизия": "kg",
+        "Туркменистан": "tm",
+        "Китай": "cn",
+        "Япония": "jp",
+        "Южная Корея": "kr",
+        "Индия": "in",
+        "Пакистан": "pk",
+        "Афганистан": "af",
+        "Иран": "ir",
+        "Ирак": "iq",
+        "Саудовская Аравия": "sa",
+        "ОАЭ": "ae",
+        "Катар": "qa",
+        "Бахрейн": "bh",
+        "Кувейт": "kw",
+        "Египет": "eg",
+        "Марокко": "ma",
+        "Тунис": "tn",
+        "Алжир": "dz",
+        "ЮАР": "za",
+        "Бразилия": "br",
+        "Аргентина": "ar",
+        "Чили": "cl",
+        "Мексика": "mx",
+        "Канада": "ca",
+        "Австралия": "au",
+        "Новая Зеландия": "nz"
     }
 
-    return render_template("index.html", categories=result, query=query,country_code=country_code)
+    return render_template(
+        "index.html",
+        categories=result,
+        query=query,
+        country_code=country_code
+    )
 
 download_tokens = {}
 from flask_cors import cross_origin
+@cross_origin()
 @app.route("/stream/<path:key>")
 def stream(key):
     try:
