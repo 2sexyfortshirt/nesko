@@ -206,7 +206,7 @@ footer a{color:#fff;margin:0 10px;cursor:pointer;text-decoration:underline}
 
 <!-- Legal Modals -->
 
-{% for type, title, content in [('about','Hakkımızda','...'),('delivery','Teslimat ve İade','...'),('privacy','Gizlilik Sözleşmesi','...'),('distance','Mesafeli Satış','...')] %}
+
 
 <div id="legal-{{ type }}" class="legal-modal">
   <div class="legal-content">
@@ -215,7 +215,65 @@ footer a{color:#fff;margin:0 10px;cursor:pointer;text-decoration:underline}
     <button class="legal-close" onclick="closeLegal('{{ type }}')">Kapat</button>
   </div>
 </div>
-{% endfor %}
+<div id="legal-delivery" class="legal-modal">
+  <div class="legal-content">
+    <h2>Teslimat ve İade Şartları</h2>
+    <p><b>Dijital Ürün Teslimatı</b><br>
+      – Ödeme başarıyla tamamlandıktan sonra ürünün indirme bağlantısı otomatik olarak e-posta adresinize gönderilir.<br>
+      – Ürün tamamen dijital olarak teslim edilir, fiziksel bir gönderim yoktur.
+    </p>
+    <p><b>İade Koşulları</b><br>
+      – Dijital ürünlerde indirme bağlantısı sağlandıktan sonra iade yapılamaz.<br>
+      – Dosya bozuk veya indirilemez durumda ise bizimle iletişime geçebilirsiniz:
+      <a href="mailto:nesko168@icloud.com">nesko168@icloud.com</a> veya
+      <a href="mailto:mozjfima@gmail.com">mozjfima@gmail.com</a>.
+      Yeni indirme bağlantısı ücretsiz olarak sağlanır.
+    </p>
+    <button class="legal-close" onclick="closeLegal('delivery')">Kapat</button>
+  </div>
+</div>
+
+<div id="legal-privacy" class="legal-modal">
+  <div class="legal-content">
+    <h2>Gizlilik Sözleşmesi</h2>
+    <p><b>Toplanan Bilgiler:</b><br>
+      – E-posta adresi<br>
+      – İsim (gerektiğinde)<br>
+      – Ödeme bilgileri (iyzico tarafından işlenir, tarafımızda saklanmaz)
+    </p>
+    <p><b>Bilgilerin Kullanım Amaçları:</b><br>
+      – Dijital ürünün teslim edilmesi<br>
+      – Satın alma onayı ve bilgilendirme<br>
+      – Teknik destek sağlanması (Destek e-posta:
+      <a href="mailto:nesko168@icloud.com">nesko168@icloud.com</a>)
+    </p>
+    <p>Kişisel verileriniz üçüncü kişilerle paylaşılmaz. Ödeme işlemleri iyzico tarafından güvenli şekilde işlenir.</p>
+    <button class="legal-close" onclick="closeLegal('privacy')">Kapat</button>
+  </div>
+</div>
+
+<div id="legal-distance" class="legal-modal">
+  <div class="legal-content">
+    <h2>Mesafeli Satış Sözleşmesi</h2>
+    <p><b>Ürün Türü:</b> Dijital müzik içeriği (MP3 / WAV).</p>
+    <p><b>Hizmetin İfası:</b><br>
+      Ödeme tamamlandıktan sonra dijital ürünün indirme bağlantısı e-posta ile gönderilir.
+      Bu aşamada hizmet tamamen ifa edilmiş sayılır.
+    </p>
+    <p><b>Cayma Hakkı:</b><br>
+      6502 sayılı kanun gereğince, dijital içerik sunulan hizmetlerde; tüketici ürünü teslim aldıktan sonra cayma hakkı kullanamaz.
+      Bu nedenle indirme bağlantısı gönderildikten sonra iade mümkün değildir.
+    </p>
+    <p><b>Tarafların Yükümlülükleri:</b><br>
+      Satıcı; doğru ve çalışır durumda dijital dosyayı sağlamakla yükümlüdür.<br>
+      Alıcı; doğru e-posta bilgisi vermekle ve dijital ürünün niteliğini kabul etmekle yükümlüdür.<br><br>
+      Destek & iletişim:
+      <a href="mailto:mozjfima@gmail.com">mozjfima@gmail.com</a> /
+      <a href="mailto:nesko168@icloud.com">nesko168@icloud.com</a>
+    </p>
+    <button class="legal-close" onclick="closeLegal('distance')">Kapat</button>
+  </div>
+</div>
 
 <div class="particles"></div>
 
@@ -230,21 +288,49 @@ footer a{color:#fff;margin:0 10px;cursor:pointer;text-decoration:underline}
     </div>
   </div>
 </div>
+<div id="legal-about" class="legal-modal">
+  <div class="legal-content">
+    <h2>Hakkımızda</h2>
+    <p>Bağımsız bir müzik yapımcısı ve besteciyim. Bu web sitesi üzerinden özgün müzik çalışmalarımı dijital formatta satın alabilirsiniz.</p>
+    <p>Hazırladığım müzikler; video içerikleri, oyunlar, reklamlar, sosyal medya projeleri ve kişisel kullanım için uygundur (seçilen lisansa bağlı olarak).</p>
+    <p>Amacım, projelerinize profesyonel bir ses tasarımı ve kaliteli müzik desteği sağlamaktır. Bu site üzerinden yapılan tüm satışlar dijital ürün kapsamındadır.</p>
+    <button class="legal-close" onclick="closeLegal('about')">Kapat</button>
+  </div>
+</div>
+
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  // --- Фильтрация стран ---
   const buttons = document.querySelectorAll(".country-btn");
   const categories = document.querySelectorAll(".category");
+
+  let openedCountry = null;
 
   buttons.forEach(btn => {
     btn.addEventListener("click", () => {
       const country = btn.dataset.target;
+
+      // Если уже открыта и нажали снова — закрываем
+      if (openedCountry === country) {
+        categories.forEach(cat => cat.style.display = "none");
+        openedCountry = null;
+        return;
+      }
+
+      // Иначе — показываем только выбранную
       categories.forEach(cat => {
         cat.style.display = (cat.dataset.country === country) ? "block" : "none";
       });
+
+      openedCountry = country;
     });
   });
+});
+
+
+
+</script>
+<script>
 
   // --- Частицы ---
   const particlesContainer = document.querySelector('.particles');
@@ -317,13 +403,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+</script>
 
 
-}); // DOMContentLoaded
-
+<script>
 function closeModal(){ document.getElementById('buy-modal').style.display='none'; }
 function openLegal(type){ document.getElementById('legal-'+type).style.display='flex'; }
 function closeLegal(type){ document.getElementById('legal-'+type).style.display='none'; }
+
 </script>
 
 </body>
