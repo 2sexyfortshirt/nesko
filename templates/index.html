@@ -55,35 +55,71 @@ footer{margin-top:60px;text-align:center;color:var(--muted);font-size:14px}
 footer a{color:#fff;margin:0 10px;cursor:pointer;text-decoration:underline}
 .country-selector {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;                    /* Не переносим кнопки */
+  overflow-x: auto;                     /* Горизонтальный скролл */
+  gap: 8px;                             /* Расстояние между кнопками */
+  padding: 8px;
+  -webkit-overflow-scrolling: touch;    /* Плавный скролл на iOS */
+  scrollbar-width: thin;                /* Узкий скролл для Firefox */
+  scrollbar-color: rgba(0,0,0,0.3) transparent;
 }
+
+.country-selector::-webkit-scrollbar {
+  height: 6px;
+}
+
+.country-selector::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.country-selector::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.3);
+  border-radius: 3px;
+}
+
 .country-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: 6px;               /* Расстояние между флагом и текстом */
+  flex: 0 0 auto;         /* Кнопка не сжимается */
+  padding: 6px 14px;
   border: none;
-  background: #222;
+  border-radius: 12px;
+  background-color: #222;
   color: white;
+  font-size: 14px;
   cursor: pointer;
-  border-radius: 6px;
+  white-space: nowrap;    /* Текст не переносится */
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .country-btn img {
   width: 24px;
-  height: 18px;
+  height: 24px;
   object-fit: cover;
+  border-radius: 50%;     /* Круглый флаг */
+  border: 1px solid #fff;
 }
 
-
-.country-btn.active {
-  background: #444;
-  border-color: white;
+.country-btn:hover {
+  background-color: #444;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
 }
 
+/* Для мобильных экранов */
+@media (max-width: 768px) {
+  .country-btn {
+    font-size: 12px;
+    padding: 4px 10px;
+  }
 
+  .country-btn img {
+    width: 20px;
+    height: 20px;
+  }
+}
 
 </style>
 
