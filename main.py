@@ -113,6 +113,8 @@ def index():
             cat_data["videos"].append(item)
 
         result.append(cat_data)
+    total_matches = sum(len(c["audios"]) + len(c["videos"]) for c in result)
+    no_results = (total_matches == 0 and query != "")
 
     # Флаги
     country_code = {
@@ -187,7 +189,8 @@ def index():
         "index.html",
         categories=result,
         query=query,
-        country_code=country_code
+        country_code=country_code,
+        no_results=no_results
     )
 
 download_tokens = {}

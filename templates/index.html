@@ -10,6 +10,7 @@
 <title>Медиа по категориям</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
 :root{
   --bg-1:#09030a; --bg-2:#120021; --accent-1:#c400ff; --accent-2:#00ffe7;
@@ -47,12 +48,58 @@ h1{font-family:'Playfair Display', serif;font-size:48px;margin:0 0 8px;color:#ff
 .legal-content{width:90%;max-width:720px;background:linear-gradient(180deg,#1b0022,#0c0013);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:28px;color:#fff;max-height:80vh;overflow-y:auto}
 .legal-content h2{margin-top:0;margin-bottom:14px}
 .legal-close{margin-top:18px;background:#fff;color:#111;padding:10px 16px;border-radius:10px;border:none;font-weight:700;cursor:pointer}
+footer {
+  margin-top: 60px;
+  text-align: center;
+  color: #bdbdbd;
+  font-size: 15px;
+  padding: 30px 0;
+
+}
+
+footer a {
+  color: #eaeaea;
+  margin: 0 14px;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  font-family: "Inter", "Roboto", "Segoe UI", sans-serif;
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.3px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+
+  /* инновация ↓ */
+  padding: 6px 10px;
+  border-radius: 12px;
+  transition: 0.25s ease;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(6px);
+}
+
+footer a:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+footer .footer-brand {
+  margin-top: 22px;
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  align-items: center;
+  opacity: 0.85;
+}
 
 
 
 
-footer{margin-top:60px;text-align:center;color:var(--muted);font-size:14px}
-footer a{color:#fff;margin:0 10px;cursor:pointer;text-decoration:underline}
+
+
 .country-selector {
   display: flex;
   flex-wrap: nowrap;                    /* Не переносим кнопки */
@@ -76,6 +123,54 @@ footer a{color:#fff;margin:0 10px;cursor:pointer;text-decoration:underline}
   background-color: rgba(0,0,0,0.3);
   border-radius: 3px;
 }
+.country-open-btn {
+  width: 100%;
+  padding: 14px 22px;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+
+  background: linear-gradient(135deg, #2a2a2a, #000000);
+  color: #ffffff;
+
+  border: 1px solid #3d3d3d;
+  box-shadow: inset 0 0 20px rgba(255,255,255,0.03),
+              0 6px 18px rgba(0,0,0,0.45);
+
+  cursor: pointer;
+  transition: 0.25s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.country-open-btn:hover {
+  background: linear-gradient(135deg, #383838, #0c0c0c);
+  transform: translateY(-2px);
+  box-shadow: inset 0 0 22px rgba(255,255,255,0.05),
+              0 10px 24px rgba(0,0,0,0.55);
+}
+
+.country-open-btn:active {
+  transform: scale(0.96);
+  box-shadow: inset 0 0 30px rgba(255,255,255,0.1),
+              0 4px 10px rgba(0,0,0,0.4);
+}
+
+.country-open-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01));
+  pointer-events: none;
+}
+
 
 .country-btn {
   display: flex;
@@ -107,6 +202,16 @@ footer a{color:#fff;margin:0 10px;cursor:pointer;text-decoration:underline}
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.4);
 }
+.no-results {
+    margin: 20px;
+    padding: 15px;
+    background: #222;
+    color: #fff;
+    font-size: 18px;
+    border-radius: 10px;
+    text-align: center;
+}
+
 
 /* Для мобильных экранов */
 @media (max-width: 768px) {
@@ -119,6 +224,97 @@ footer a{color:#fff;margin:0 10px;cursor:pointer;text-decoration:underline}
     width: 20px;
     height: 20px;
   }
+   footer {
+    padding: 25px 10px;
+    font-size: 13px;
+  }
+
+  footer a {
+    display: block;
+    margin: 8px 0;
+    font-size: 14px;
+  }
+
+  footer .footer-logo {
+    margin-top: 20px;
+  }
+
+  footer img {
+    height: 26px !important;
+  }
+  .title-main {
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-align: center;
+  color: #fff;
+}
+
+.title-arc {
+  font-size: 20px;
+  font-weight: 600;
+  text-align: center;
+  color: #f2f2f2;
+
+  display: inline-block;
+  margin-top: -10px;
+  transform: translateY(6px); /* чуть ниже */
+  letter-spacing: 6px;
+
+  /* ИМИТАЦИЯ ИЗГИБА */
+  transform-origin: center top;
+  transform: translateY(6px) rotateX(25deg);
+  opacity: 0.9;
+}
+
+
+/* Модалка: стиль кнопок выбора страны */
+.choose-country-btn {
+  background: #141414;
+  border: 1px solid #242424;
+  padding: 12px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-size: 14px;
+  transition: transform .18s ease, background .18s ease, border-color .18s ease;
+}
+
+.choose-country-btn img {
+  width: 56px;
+  height: auto;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.choose-country-btn span {
+  display: block;
+  margin-top: 4px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+/* Hover/active */
+.choose-country-btn:hover {
+  background: #1d1d1d;
+  transform: translateY(-4px);
+  border-color: #3a3a3a;
+}
+.choose-country-btn:active {
+  transform: scale(0.98);
+}
+
+/* Мелкая адаптация */
+@media (max-width: 576px) {
+  .choose-country-btn img { width: 48px; }
+  .choose-country-btn { padding: 10px; font-size: 13px; border-radius: 8px; }
+}
+
+
+
 }
 
 </style>
@@ -127,22 +323,56 @@ footer a{color:#fff;margin:0 10px;cursor:pointer;text-decoration:underline}
 <body>
 
 <header>
-  <h1>NEPIANO.NET</h1>
+  <h1 class="title-main"> NEPIANO.NET</h1>
+  <h2 class="title-arc">COVERS</h2>
   <form class="search" method="get" action="/">
     <input type="text" name="q" placeholder="Поиск..." value="{{ query }}">
     <button type="submit">🔍</button>
   </form>
+  {% if no_results %}
+<div class="no-results">
+  По запросу «{{ query }}» ничего не найдено.
+</div>
+{% endif %}
+
 </header>
 
-<div class="country-selector">
-  {% for category in categories %}
-    <button class="country-btn" data-target="{{ category.name|lower }}">
-     <img src="https://flagcdn.com/24x18/{{ country_code[category.name]|lower }}.png">
+<!-- Кнопка открытия модалки Bootstrap -->
+<div class="mb-3">
+  <button class="country-open-btn" data-bs-toggle="modal" data-bs-target="#countryModal">
+    🌍 Выбрать страну
+  </button>
+</div>
 
+<!-- Country Modal (Bootstrap) -->
+<div class="modal fade" id="countryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" style="background:#0e0e0e; color:white; border-radius:12px;">
 
-      {{ category.name }}
-    </button>
-  {% endfor %}
+      <div class="modal-header border-0">
+        <h5 class="modal-title">Выберите страну</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row g-2">
+          {% for category in categories %}
+          <div class="col-6 col-md-3">
+            <button type="button"
+                    class="choose-country-btn w-100"
+                    data-target="{{ category.name|lower }}"
+                    data-bs-dismiss="modal"
+                    aria-label="Выбрать {{ category.name }}">
+              <img src="https://flagcdn.com/48x36/{{ country_code[category.name]|lower }}.png" alt="{{ category.name }} flag">
+              <span>{{ category.name }}</span>
+            </button>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <main>
@@ -192,15 +422,14 @@ footer a{color:#fff;margin:0 10px;cursor:pointer;text-decoration:underline}
 </main>
 
 <!-- Футер -->
-
 <footer>
   <a onclick="openLegal('about')">Hakkımızda</a>
   <a onclick="openLegal('delivery')">Teslimat ve İade</a>
   <a onclick="openLegal('privacy')">Gizlilik Sözleşmesi</a>
   <a onclick="openLegal('distance')">Mesafeli Satış</a>
 
-  <div style="margin-top: 18px; display: flex; justify-content: center; gap: 18px; align-items: center; opacity: 0.85;">
-    <img src="{{ url_for('static', filename='logo_band_colored@1X.png') }}" alt="iyzico" style="height:28px;">
+  <div class="footer-brand">
+    <img src="{{ url_for('static', filename='logo_band_colored@1X.png') }}" alt="iyzico" height="28">
   </div>
 </footer>
 
@@ -299,37 +528,42 @@ footer a{color:#fff;margin:0 10px;cursor:pointer;text-decoration:underline}
 </div>
 
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const buttons = document.querySelectorAll(".country-btn");
-  const categories = document.querySelectorAll(".category");
+  const cats = document.querySelectorAll(".category"); // твои секции
+  const chooseBtns = document.querySelectorAll(".choose-country-btn");
 
-  let openedCountry = null;
-
-  buttons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const country = btn.dataset.target;
-
-      // Если уже открыта и нажали снова — закрываем
-      if (openedCountry === country) {
-        categories.forEach(cat => cat.style.display = "none");
-        openedCountry = null;
-        return;
+  function showCategory(target) {
+    // если target === 'all' — показываем все (опционально)
+    cats.forEach(cat => {
+      if (!target) {
+        cat.style.display = ""; // сброс стиля — показываем по умолчанию
+      } else if (cat.dataset.country === target) {
+        cat.style.display = "block";
+      } else {
+        cat.style.display = "none";
       }
+    });
 
-      // Иначе — показываем только выбранную
-      categories.forEach(cat => {
-        cat.style.display = (cat.dataset.country === country) ? "block" : "none";
-      });
+    // подскролить наверх (опционально)
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
-      openedCountry = country;
+  chooseBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const target = btn.dataset.target;
+      showCategory(target);
     });
   });
+
+  // Если хочешь, чтобы при открытии модалки сразу центрировать активный элемент,
+  // можно реализовать автоподсветку — но это опция.
 });
-
-
-
 </script>
+
 <script>
 
   // --- Частицы ---
