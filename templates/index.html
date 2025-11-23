@@ -95,6 +95,60 @@ footer .footer-brand {
   opacity: 0.85;
 }
 
+.glass-btn {
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 17px;
+  font-weight: 600;
+  border-radius: 18px;
+
+  /* стекло */
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  /* граница стекла */
+  border: 1px solid rgba(255, 255, 255, 0.25);
+
+  /* мягкая неоновая подсветка */
+  box-shadow:
+      0 8px 32px rgba(0,0,0,0.35),
+      inset 0 0 15px rgba(255,255,255,0.08);
+
+  color: #fff;
+  letter-spacing: 0.4px;
+
+  cursor: pointer;
+  transition: 0.25s ease;
+  text-transform: uppercase;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  user-select: none;
+}
+
+.glass-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(16px);
+
+  box-shadow:
+      0 12px 40px rgba(0,0,0,0.45),
+      inset 0 0 20px rgba(255,255,255,0.12);
+
+  transform: translateY(-2px);
+}
+
+.glass-btn:active {
+  transform: scale(0.96);
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow:
+      0 6px 20px rgba(0,0,0,0.35),
+      inset 0 0 28px rgba(255,255,255,0.2);
+}
 
 
 
@@ -220,6 +274,25 @@ footer .footer-brand {
     padding: 4px 10px;
   }
 
+
+.search {
+    flex-direction: column;  /* кнопка под инпутом */
+    align-items: center;     /* центрируем */
+    gap: 12px;               /* отступ между инпутом и кнопкой */
+  }
+
+  .search input {
+    width: 80%;       /* уменьшаем ширину инпута на мобильных */
+    max-width: 300px;
+  }
+
+  .search button {
+    width: 50%;       /* кнопка под инпутом */
+    max-width: 300px;
+
+    margin-top: 20px;
+  }
+
   .country-btn img {
     width: 20px;
     height: 20px;
@@ -317,6 +390,8 @@ footer .footer-brand {
 
 }
 
+
+
 </style>
 
 </head>
@@ -327,7 +402,7 @@ footer .footer-brand {
   <h2 class="title-arc">COVERS</h2>
   <form class="search" method="get" action="/">
     <input type="text" name="q" placeholder="Поиск..." value="{{ query }}">
-    <button type="submit">🔍</button>
+    <button type="submit" >🔍</button>
   </form>
   {% if no_results %}
 <div class="no-results">
@@ -339,7 +414,7 @@ footer .footer-brand {
 
 <!-- Кнопка открытия модалки Bootstrap -->
 <div class="mb-3">
-  <button class="country-open-btn" data-bs-toggle="modal" data-bs-target="#countryModal">
+  <button class="glass-btn" data-bs-toggle="modal" data-bs-target="#countryModal">
     🌍 Выбрать страну
   </button>
 </div>
