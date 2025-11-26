@@ -3,6 +3,5 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-instance/*.db
-instance/database.db
+
 *.env
