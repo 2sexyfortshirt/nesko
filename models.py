@@ -14,6 +14,7 @@ class Audio(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(255), nullable=False)
+    original_name = db.Column(db.String(255))
     url = db.Column(db.String(255))
     artist = db.Column(db.String(100))
     genre = db.Column(db.String(100))
@@ -28,6 +29,7 @@ class Video(db.Model):
     __tablename__ = "videos"
 
     id = db.Column(db.Integer, primary_key=True)
+    original_name = db.Column(db.String(255))
     filename = db.Column(db.String(255), nullable=False)
     url = db.Column(db.String(255))
     title = db.Column(db.String(255))

@@ -27,7 +27,8 @@ app = Flask(__name__)
 
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(app.instance_path, 'database.db')}"
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.getenv("FLASK_SECRET", "supersecret_local_change_me")
 
@@ -65,6 +66,7 @@ def index():
 
     for cat in categories:
         cat_data = {
+            "id" :cat.id,
             "name": cat.name,
             "audios": [],
             "videos": []
@@ -308,18 +310,16 @@ def admin():
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
 
-    file = None  # Объявляем заранее
-
     if request.method == "POST":
-        if 'file' in request.files:
-            file = request.files.get("file")
-        if not file or not file.filename:
+        uploaded_file = request.files.get("file")
+        if not uploaded_file or not uploaded_file.filename:
             flash("⚠️ Не выбран файл!", "error")
             return redirect(url_for("admin"))
 
         media_type = request.form.get("media_type")
-        filename = secure_filename(file.filename)
-        url = upload_file(file, filename)
+        filename_safe = secure_filename(uploaded_file.filename)
+        original_name = uploaded_file.filename  # сохраняем оригинальное имя
+        url = upload_file(uploaded_file, filename_safe)
         if not url:
             flash("❌ Ошибка загрузки в облако!", "error")
             return redirect(url_for("admin"))
@@ -348,7 +348,8 @@ def admin():
                 price = 0
 
             new_audio = Audio(
-                filename=filename,
+                filename=filename_safe,
+                original_name=original_name,
                 url=url,
                 artist=artist,
                 genre=genre,
@@ -359,9 +360,10 @@ def admin():
             db.session.add(new_audio)
 
         elif media_type == "video":
-            title = request.form.get("title") or filename
+            title = request.form.get("title") or original_name
             new_video = Video(
-                filename=filename,
+                filename=filename_safe,
+                original_name=original_name,
                 url=url,
                 title=title,
                 category_id=category_id
@@ -369,7 +371,7 @@ def admin():
             db.session.add(new_video)
 
         db.session.commit()
-        flash(f"✅ Файл '{filename}' добавлен в базу!", "success")
+        flash(f"✅ Файл '{original_name}' добавлен в базу!", "success")
         return redirect(url_for("admin"))
 
     # --- Рендеринг страницы ---
@@ -400,15 +402,24 @@ def add_category():
     if not name:
         return jsonify({"success": False, "message": "Название категории не может быть пустым!"})
 
-    new_cat = CountryCategory(name=name)
-    db.session.add(new_cat)
-    db.session.commit()
+    exists = CountryCategory.query.filter_by(name=name).first()
+    if exists:
+        return jsonify({"success": False, "message": "Такая категория уже существует!"})
 
-    return jsonify({
-        "success": True,
-        "message": "Категория добавлена!",
-        "category": {"id": new_cat.id, "name": new_cat.name}
-    })
+    try:
+        new_cat = CountryCategory(name=name)
+        db.session.add(new_cat)
+        db.session.commit()
+
+        return jsonify({
+            "success": True,
+            "message": "Категория добавлена!",
+            "category": {"id": new_cat.id, "name": new_cat.name}
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": f"Ошибка: {str(e)}"})
 
 @app.route("/admin/category/delete", methods=["POST"])
 def delete_category():
@@ -427,6 +438,12 @@ def delete_category():
         return jsonify({"success": True, "message": "Категория удалена!", "category_id": cat_id})
     except Exception as e:
         return jsonify({"success": False, "message": "Ошибка удаления категории!"})
+
+
+
+
+
+
 
 @app.route("/admin/delete/<media_type>/<filename>", methods=["POST"])
 def delete_media(media_type, filename):
@@ -459,6 +476,102 @@ def delete_media(media_type, filename):
     db.session.commit()
 
     return jsonify({"success": True, "message": f"'{filename}' удалён!"})
+
+@app.route("/admin/media/update", methods=["POST"])
+def update_media():
+    if not session.get("admin_logged_in"):
+        return jsonify({"success": False, "message": "Не авторизован"}), 401
+
+    media_type = request.form.get("media_type")
+    filename = request.form.get("filename")
+
+    if media_type == "audio":
+        record = Audio.query.filter_by(filename=filename).first()
+    elif media_type == "video":
+        record = Video.query.filter_by(filename=filename).first()
+    else:
+        return jsonify({"success": False, "message": "Неверный тип файла"})
+
+    if not record:
+        return jsonify({"success": False, "message": "Файл не найден"})
+
+    # --- Обновляем поля ---
+    if media_type == "audio":
+        record.artist = request.form.get("artist", record.artist)
+        record.genre = request.form.get("genre", record.genre)
+
+        try:
+            record.price = int(float(request.form.get("price", record.price)) * 100)
+        except:
+            pass
+
+        try:
+            record.category_id = int(request.form.get("category_id"))
+        except:
+            pass
+
+        # обновление обложки
+        if "thumb" in request.files:
+            thumb = request.files["thumb"]
+            if thumb and thumb.filename:
+                thumb_name = secure_filename(thumb.filename)
+                save_path = os.path.join("static", "covers", thumb_name)
+                os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                thumb.save(save_path)
+                record.thumb_url = f"/static/covers/{thumb_name}"
+
+    elif media_type == "video":
+        record.title = request.form.get("title", record.title)
+        try:
+            record.category_id = int(request.form.get("category_id"))
+        except:
+            pass
+
+    db.session.commit()
+
+    return jsonify({"success": True, "message": "Обновлено!"})
+
+
+@app.route("/admin/category/update", methods=["POST"])
+def update_category():
+    if not session.get("admin_logged_in"):
+        return jsonify({"success": False, "message": "Не авторизован"}), 401
+
+    cat_id = request.form.get("category_id")
+    new_name = request.form.get("category_name", "").strip()
+
+    if not cat_id or not new_name:
+        return jsonify({"success": False, "message": "Неверные данные!"})
+
+    category = CountryCategory.query.get(cat_id)
+
+    if not category:
+        return jsonify({"success": False, "message": "Категория не найдена!"})
+
+    # Проверяем уникальность имени
+    exists = CountryCategory.query.filter(
+        CountryCategory.id != cat_id,
+        CountryCategory.name == new_name
+    ).first()
+
+    if exists:
+        return jsonify({"success": False, "message": "Такая категория уже существует!"})
+
+    try:
+        category.name = new_name
+        db.session.commit()
+
+        return jsonify({
+            "success": True,
+            "message": "Название обновлено!",
+            "category": {"id": category.id, "name": category.name}
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": f"Ошибка: {str(e)}"})
+
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)

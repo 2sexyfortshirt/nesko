@@ -105,6 +105,10 @@
 
         <div style="margin-top:12px">
           <button class="primary" type="submit">Загрузить</button>
+          <div id="upload-status" style="display:none; margin-top:10px; font-weight:600;">
+  ⏳ Загрузка…
+</div>
+
         </div>
       </form>
     </section>
@@ -118,50 +122,96 @@
           <tr><th>Файл</th><th>Артист</th><th>Жанр</th><th>Цена</th><th>Категория</th><th></th></tr>
         </thead>
             <tbody>
-          {% for c in covers %}
-      <tr data-filename="{{ c.filename }}">
-      <td>{{ c.filename }}<br><small><a href="{{ c.url }}" target="_blank">{{ c.url|replace('https://','') }}</a></small></td>
-      <td>{{ c.artist }}</td>
-      <td>{{ c.genre }}</td>
-      <td>{{ c.price }} ₺</td>
-      <td>{{ c.category_name or '—' }}</td>
-      <td>
-        <form class="delete-media-form" method="post" action="{{ url_for('delete_media', media_type='audio', filename=c.filename) }}">
-          <button type="submit" class="danger">Удалить</button>
-        </form>
-      </td>
-    </tr>
-    {% endfor %}
+{% for c in covers %}
+<tr class="audio-row" data-filename="{{ c.filename }}">
+  <td>
+    <strong>{{ c.filename }}</strong>
+    <br>
+    <small><a href="{{ c.url }}" target="_blank">{{ c.url|replace('https://','') }}</a></small>
+  </td>
+
+  <!-- Артист -->
+  <td>
+    <span class="artist">{{ c.artist }}</span>
+    <input class="artist-input" type="text" value="{{ c.artist }}" style="display:none">
+  </td>
+
+  <!-- Жанр -->
+  <td>
+    <span class="genre">{{ c.genre }}</span>
+    <input class="genre-input" type="text" value="{{ c.genre }}" style="display:none">
+  </td>
+
+  <!-- Цена -->
+  <td>
+    <span class="price">{{ c.price }}</span>
+    <input class="price-input" type="number" value="{{ c.price }}" style="display:none">
+  </td>
+
+  <!-- Категория -->
+  <td>
+    <span class="category">{{ c.category_name or '—' }}</span>
+
+    <select class="category-input" style="display:none">
+      {% for cat in categories %}
+      <option value="{{ cat.id }}" {% if cat.name == c.category_name %}selected{% endif %}>{{ cat.name }}</option>
+      {% endfor %}
+    </select>
+  </td>
+
+  <!-- Сохранить -->
+  <td>
+    <button class="save-btn" style="display:none">💾</button>
+
+    <form class="delete-media-form" method="post" action="{{ url_for('delete_media', media_type='audio', filename=c.filename) }}">
+      <button type="submit" class="danger">Удалить</button>
+    </form>
+  </td>
+</tr>
+{% endfor %}
 </tbody>
       </table>
     </section>
 
-    <!-- VIDEOS -->
-    <section id="videos" class="card" style="display:none">
-      <h3>🎬 Видео</h3>
-      <input type="text" class="search-input" placeholder="Поиск видео..." oninput="filterTable('videos', this.value)">
-      <table>
-        <thead>
-          <tr><th>Файл</th><th>Название</th><th>Категория</th><th></th></tr>
-        </thead>
-        <tbody>
-        {% for v in videos %}
-          <tr>
-            <td>{{ v.filename }}<br><small><a href="{{ v.url }}" target="_blank">{{ v.url|replace('https://','') }}</a></small></td>
-            <td>{{ v.title }}</td>
-            <td>{{ v.category_name or '—' }}</td>
-            <td>
-              <form action="{{ url_for('delete_media', media_type='video', filename=v.filename) }}" method="post">
-                <button class="danger">Удалить</button>
-              </form>
-            </td>
-          </tr>
-        {% else %}
-          <tr><td colspan="4" style="color:#777">Пока нет загруженных видео</td></tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </section>
+   <section id="videos" class="card" style="display:none">
+  <h3>🎬 Видео</h3>
+  <input type="text" class="search-input" placeholder="Поиск видео..." oninput="filterTable('videos', this.value)">
+  <table>
+    <thead>
+      <tr><th>Файл</th><th>Название</th><th>Категория</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for v in videos %}
+      <tr class="video-row" data-filename="{{ v.filename }}">
+        <td>{{ v.filename }}<br><small><a href="{{ v.url }}" target="_blank">{{ v.url|replace('https://','') }}</a></small></td>
+
+        <!-- Название видео -->
+        <td>
+          <span class="title">{{ v.title }}</span>
+          <input class="title-input" type="text" value="{{ v.title }}" style="display:none">
+        </td>
+
+        <!-- Категория -->
+        <td>
+          <span class="category">{{ v.category_name or '—' }}</span>
+          <select class="category-input" style="display:none">
+            {% for cat in categories %}
+            <option value="{{ cat.id }}" {% if cat.name == v.category_name %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </td>
+
+        <!-- Кнопки -->
+        <td>
+          <button class="save-btn" style="display:none">💾</button>
+          <button class="danger delete-btn" data-type="video" data-filename="{{ v.filename }}">Удалить</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
 
     <!-- CATEGORIES -->
    <section id="categories" class="card">
@@ -177,26 +227,26 @@
     <thead>
       <tr><th>ID</th><th>Название</th><th>Действие</th></tr>
     </thead>
-    <tbody>
-      <tbody id="categories-list">
-      {% for cat in categories %}
-      <tr>
-        <td>{{ cat.id }}</td>
-        <td>{{ cat.name }}</td>
-        <td>
-           <form class="delete-category-form" method="post" action="{{ url_for('delete_category') }}">
-                <input type="hidden" name="category_id" value="{{ cat.id }}">
-                <button type="submit" class="danger">Удалить</button>
-            </form>
-          <div id="category-messages"></div>
+    <tbody id="categories-list">
+{% for cat in categories %}
+<tr data-id="{{ cat.id }}">
+  <td>{{ cat.id }}</td>
 
-        </td>
-      </tr>
-      {% else %}
-      <tr><td colspan="3" style="color:#777">Нет категорий</td></tr>
-      {% endfor %}
+  <td class="category-cell">
+    <span class="cat-name">{{ cat.name }}</span>
+    <input class="edit-input" type="text" value="{{ cat.name }}" style="display:none">
+    <div class="cat-msg"></div>
+  </td>
 
-    </tbody>
+  <td>
+      <form class="delete-category-form" method="post" action="{{ url_for('delete_category') }}">
+          <input type="hidden" name="category_id" value="{{ cat.id }}">
+          <button type="submit" class="danger">Удалить</button>
+      </form>
+  </td>
+</tr>
+{% endfor %}
+</tbody>
   </table>
 
 </section>
@@ -250,174 +300,471 @@ function filterTable(sectionId, query){
 }
 </script>
 <script>
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
 
+  // ------------------------------------------------------------------
+  // UNIVERSAL AJAX POST
+  // ------------------------------------------------------------------
+  async function postForm(url, formData) {
+    const res = await fetch(url, { method: "POST", body: formData });
+    return await res.json();
+  }
+
+  // ------------------------------------------------------------------
+  // CATEGORY ADD
+  // ------------------------------------------------------------------
   const categoryMessage = document.getElementById("category-message");
   const categoriesList = document.getElementById("categories-list");
 
-  // --- Функция для добавления новой категории через AJAX ---
   const addForm = document.getElementById("add-category-form");
-  addForm.addEventListener("submit", function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
+  if (addForm) {
+    addForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
 
-    fetch("/admin/category/add", {
-      method: "POST",
-      body: formData
-    })
-    .then(resp => resp.json())
-    .then(data => {
+      const data = await postForm("/admin/category/add", new FormData(this));
       categoryMessage.textContent = data.message;
-      if (data.success) {
-        // Создаем новую строку
-        const tr = document.createElement("tr");
-        tr.setAttribute("data-id", data.category.id);
-        tr.innerHTML = `
-          <td>${data.category.id}</td>
-          <td>${data.category.name}</td>
-          <td>
-            <form class="delete-category-form" method="post" action="/admin/category/delete">
-              <input type="hidden" name="category_id" value="${data.category.id}">
-              <button type="submit" class="danger">Удалить</button>
-            </form>
-          </td>
-        `;
-        categoriesList.appendChild(tr);
 
-        // Очистка поля ввода
-        document.getElementById("category_name").value = "";
+      if (!data.success) return;
 
-        // Добавляем обработчик на кнопку удаления новой категории
-        tr.querySelector(".delete-category-form").addEventListener("submit", deleteCategoryHandler);
-      }
-    })
-    .catch(err => console.error("Ошибка добавления категории:", err));
-  });
+      const tr = document.createElement("tr");
+      tr.dataset.id = data.category.id;
+      tr.innerHTML = `
+        <td>${data.category.id}</td>
+        <td class="category-cell">
+          <span class="cat-name">${data.category.name}</span>
+          <input class="edit-input" style="display:none">
+          <div class="cat-msg"></div>
+        </td>
+        <td>
+          <form class="delete-category-form" method="post" action="/admin/category/delete">
+            <input type="hidden" name="category_id" value="${data.category.id}">
+            <button type="submit" class="danger">Удалить</button>
+          </form>
+        </td>`;
 
-  // --- Удаление категории через AJAX ---
-  function deleteCategoryHandler(e) {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-    const tr = form.closest("tr");
-
-    fetch(form.action, {
-      method: "POST",
-      body: formData
-    })
-    .then(resp => resp.json())
-    .then(data => {
-      categoryMessage.textContent = data.message;
-      if (data.success && tr) tr.remove();
-    })
-    .catch(err => console.error("Ошибка удаления категории:", err));
+      categoriesList.appendChild(tr);
+      addInlineCategoryEdit(tr);
+      tr.querySelector(".delete-category-form").addEventListener("submit", deleteCategoryHandler);
+      addForm.reset();
+    });
   }
 
-  document.querySelectorAll(".delete-category-form").forEach(form => {
-    form.addEventListener("submit", deleteCategoryHandler);
-  });
-
-  // --- Удаление медиа (audio/video) через AJAX ---
-  function deleteMediaHandler(e) {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-    const tr = form.closest("tr");
-
-    fetch(form.action, {
-      method: "POST",
-      body: formData
-    })
-    .then(resp => resp.json())
-    .then(data => {
-      if (data.success && tr) tr.remove();
-      else alert(data.message || "Ошибка удаления файла");
-    })
-    .catch(err => console.error("Ошибка удаления медиа:", err));
-  }
-
-  document.querySelectorAll("#audios .danger, #videos .danger").forEach(button => {
-    const form = button.closest("form");
-    form.addEventListener("submit", deleteMediaHandler);
-  });
-
-});
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-
-  function deleteMediaHandler(e) {
+  // ------------------------------------------------------------------
+  // CATEGORY DELETE
+  // ------------------------------------------------------------------
+  async function deleteCategoryHandler(e) {
     e.preventDefault();
     const form = e.currentTarget;
     const tr = form.closest("tr");
-    const formData = new FormData(form);
 
-    fetch(form.action, {
-      method: "POST",
-      body: formData
-    })
-    .then(resp => resp.json())
-    .then(data => {
-      if (data.success && tr) {
-        tr.remove(); // удаляем строку таблицы
-      } else {
-        alert(data.message || "Ошибка удаления файла");
-      }
-    })
-    .catch(err => console.error("Ошибка AJAX:", err));
+    const data = await postForm(form.action, new FormData(form));
+    categoryMessage.textContent = data.message;
+
+    if (data.success) tr.remove();
   }
 
-  document.querySelectorAll(".delete-media-form").forEach(form => {
-    form.addEventListener("submit", deleteMediaHandler);
-  });
+  document.querySelectorAll(".delete-category-form")
+    .forEach(f => f.addEventListener("submit", deleteCategoryHandler));
 
-});
-</script>
+  // ------------------------------------------------------------------
+  // MEDIA DELETE (AUDIO / VIDEO)
+  // ------------------------------------------------------------------
+  async function deleteMediaHandler(e) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const tr = form.closest("tr");
 
-<script>
-document.addEventListener("DOMContentLoaded", function() {
+    const data = await postForm(form.action, new FormData(form));
+
+    if (data.success) tr.remove();
+    else alert(data.message || "Ошибка удаления файла");
+  }
+
+  document.querySelectorAll(".delete-media-form")
+    .forEach(f => f.addEventListener("submit", deleteMediaHandler));
+
+  // ------------------------------------------------------------------
+  // DRAG & DROP UPLOAD UI
+  // ------------------------------------------------------------------
   const dropArea = document.getElementById("drop-area");
   const fileInput = document.getElementById("file-input");
 
-  // Клик по drop-area — открываем диалог выбора файла
-  dropArea.addEventListener("click", () => fileInput.click());
+  if (dropArea && fileInput) {
+    const showFileName = (file) => dropArea.textContent = file.name;
 
-  // Функция отображения выбранного файла
-  function showFileName(file) {
-    dropArea.textContent = file.name;
+    dropArea.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", () => {
+      if (fileInput.files.length) showFileName(fileInput.files[0]);
+    });
+
+    dropArea.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropArea.classList.add("dragover");
+    });
+
+    dropArea.addEventListener("dragleave", () => dropArea.classList.remove("dragover"));
+
+    dropArea.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropArea.classList.remove("dragover");
+      if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        showFileName(e.dataTransfer.files[0]);
+      }
+    });
   }
 
-  // Обработка выбора через input
-  fileInput.addEventListener("change", function() {
-    if (this.files.length > 0) {
-      showFileName(this.files[0]);
+  // ------------------------------------------------------------------
+  // INLINE CATEGORY EDIT
+  // ------------------------------------------------------------------
+  function addInlineCategoryEdit(row) {
+    const cell = row.querySelector(".category-cell");
+    if (!cell) return;
+
+    const nameSpan = cell.querySelector(".cat-name");
+    const input = cell.querySelector(".edit-input");
+    const msg = cell.querySelector(".cat-msg");
+    const id = row.dataset.id;
+
+    let editing = false;
+
+    cell.ondblclick = () => {
+      if (editing) return;
+      editing = true;
+      input.value = nameSpan.textContent;
+      nameSpan.style.display = "none";
+      input.style.display = "inline-block";
+      input.focus();
+      input.select();
+    };
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") save();
+      if (e.key === "Escape") cancel();
+    });
+
+    input.addEventListener("blur", save);
+
+    async function save() {
+      if (!editing) return;
+      editing = false;
+
+      const newName = input.value.trim();
+      if (!newName) {
+        msg.textContent = "Название не может быть пустым!";
+        return cancel();
+      }
+
+      const fd = new FormData();
+      fd.append("category_id", id);
+      fd.append("category_name", newName);
+
+      const data = await postForm("/admin/category/update", fd);
+      msg.textContent = data.message;
+      if (data.success) nameSpan.textContent = newName;
+
+      nameSpan.style.display = "inline-block";
+      input.style.display = "none";
     }
-  });
 
-  // Drag & drop
-  dropArea.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    dropArea.style.border = "2px dashed #4CAF50"; // визуальный эффект
-  });
-
-  dropArea.addEventListener("dragleave", (e) => {
-    e.preventDefault();
-    dropArea.style.border = "2px dashed #ccc";
-  });
-
-  dropArea.addEventListener("drop", (e) => {
-    e.preventDefault();
-    dropArea.style.border = "2px dashed #ccc";
-
-    if (e.dataTransfer.files.length > 0) {
-      fileInput.files = e.dataTransfer.files; // привязываем к input
-      showFileName(e.dataTransfer.files[0]);
+    function cancel() {
+      editing = false;
+      nameSpan.style.display = "inline-block";
+      input.style.display = "none";
     }
+  }
+
+  document.querySelectorAll("#categories-list tr").forEach(addInlineCategoryEdit);
+
+  // ------------------------------------------------------------------
+  // INLINE MEDIA EDIT (AUDIO / VIDEO)
+  // ------------------------------------------------------------------
+  function addInlineMediaEdit(row, fields, mediaType = "audio") {
+    const saveBtn = row.querySelector(".save-btn");
+    const editing = {};
+
+    fields.forEach(field => {
+      const span = row.querySelector(`.${field}`);
+      const input = row.querySelector(`.${field}-input`);
+      if (!span || !input) return;
+
+      span.addEventListener("dblclick", () => {
+        span.style.display = "none";
+        input.style.display = "inline-block";
+        input.focus();
+        if (input.select) input.select();
+        editing[field] = true;
+        if (saveBtn) saveBtn.style.display = "inline-block";
+      });
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") save();
+        if (e.key === "Escape") cancel();
+      });
+
+      input.addEventListener("blur", () => editing[field] && save());
+    });
+
+    async function save() {
+      const fd = new FormData();
+      fd.append("media_type", mediaType);
+      fd.append("filename", row.dataset.filename);
+
+      fields.forEach(field => {
+        const input = row.querySelector(`.${field}-input`);
+        if (field === "category") {
+          fd.append("category_id", input.value);
+        } else {
+          fd.append(field, input.value);
+        }
+      });
+
+      const data = await postForm("/admin/media/update", fd);
+      alert(data.message || "Сохранено!");
+
+      if (data.success) {
+        fields.forEach(field => {
+          const span = row.querySelector(`.${field}`);
+          const input = row.querySelector(`.${field}-input`);
+          if (field === "category") {
+            span.textContent = input.options[input.selectedIndex].text;
+          } else {
+            span.textContent = input.value;
+          }
+        });
+      }
+
+      cancel();
+    }
+
+    function cancel() {
+      fields.forEach(field => {
+        const span = row.querySelector(`.${field}`);
+        const input = row.querySelector(`.${field}-input`);
+        span.style.display = "inline";
+        input.style.display = "none";
+        editing[field] = false;
+      });
+      if (saveBtn) saveBtn.style.display = "none";
+    }
+  }
+
+  document.querySelectorAll(".audio-row")
+    .forEach(row => addInlineMediaEdit(row, ["artist", "genre", "price", "category"], "audio"));
+
+});
+</script>
+
+<script>
+document.addEventListener("click", async (e) => {
+  if (!e.target.classList.contains("delete-btn")) return;
+
+  const btn = e.target;
+  const mediaType = btn.dataset.type;
+  const filename = btn.dataset.filename;
+
+  if (!confirm(`Удалить ${filename}?`)) return;
+
+  const res = await fetch(`/admin/delete/${mediaType}/${filename}`, {
+    method: "POST"
   });
+
+  const data = await res.json();
+
+  if (data.success) {
+    // удаляем строку из таблицы
+    btn.closest("tr").remove();
+  } else {
+    alert("Ошибка: " + data.message);
+  }
+});
+</script>
+<script>
+document.getElementById("file-input").addEventListener("change", validateFile);
+document.getElementById("drop-area").addEventListener("drop", validateFileDrop);
+
+function validateFile(event) {
+    const mediaType = document.getElementById("media_type").value;
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!checkCorrect(mediaType, file)) {
+        event.target.value = ""; // сбросить input
+    }
+}
+
+function validateFileDrop(event) {
+    event.preventDefault();
+    const mediaType = document.getElementById("media_type").value;
+    const file = event.dataTransfer.files[0];
+    if (!file) return;
+
+    if (!checkCorrect(mediaType, file)) return;
+
+    // если всё ок — кладём в input
+    document.getElementById("file-input").files = event.dataTransfer.files;
+    document.getElementById("drop-area").textContent = file.name;
+}
+
+function checkCorrect(mediaType, file) {
+    const isAudio = file.type.startsWith("audio");
+    const isVideo = file.type.startsWith("video");
+
+    if (mediaType === "audio" && isVideo) {
+        alert("❌ Вы выбрали 'Музыка', но загрузили видео-файл!");
+        return false;
+    }
+    if (mediaType === "video" && isAudio) {
+        alert("❌ Вы выбрали 'Видео', но загрузили аудио-файл!");
+        return false;
+    }
+    return true;
+}
+</script>
+
+<script>
+document.getElementById("upload-form").addEventListener("submit", function (e) {
+    e.preventDefault(); // отменяем обычную отправку
+
+    const form = this;
+    const btn = form.querySelector("button[type='submit']");
+    const status = document.getElementById("upload-status");
+    const fileInput = document.getElementById("file-input");
+    const mediaType = document.getElementById("media_type").value;
+
+    if (!fileInput.files.length) {
+        alert("Выберите файл!");
+        return;
+    }
+
+    const file = fileInput.files[0];
+
+    // Проверка формата
+    if (mediaType === "audio" && !file.type.startsWith("audio/")) {
+        alert("Ошибка! Выбран неверный формат для аудио.");
+        return;
+    }
+    if (mediaType === "video" && !file.type.startsWith("video/")) {
+        alert("Ошибка! Выбран неверный формат для видео.");
+        return;
+    }
+
+    const formData = new FormData(form);
+    const xhr = new XMLHttpRequest();
+
+    xhr.open("POST", form.action);
+
+    btn.disabled = true;
+    status.style.display = "block";
+
+    xhr.upload.addEventListener("progress", e => {
+        if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            status.textContent = `⏳ Загрузка… ${percent}%`;
+        }
+    });
+
+    xhr.onload = () => {
+        btn.disabled = false;
+        if (xhr.status === 200) {
+            status.textContent = "✅ Загружено!";
+            form.reset();
+            setTimeout(() => { status.style.display = "none"; }, 2000);
+        } else {
+            status.textContent = "❌ Ошибка загрузки!";
+        }
+    };
+
+    xhr.onerror = () => {
+        btn.disabled = false;
+        status.textContent = "❌ Ошибка при отправке файла.";
+    };
+
+    xhr.send(formData);
 });
 </script>
 
 
+
+<script>
+function addInlineMediaEdit(row, fields, mediaType = "video") {
+  const saveBtn = row.querySelector(".save-btn");
+  const editing = {};
+
+  fields.forEach(field => {
+    const span = row.querySelector(`.${field}`);
+    const input = row.querySelector(`.${field}-input`);
+    if (!span || !input) return;
+
+    span.addEventListener("dblclick", () => {
+      span.style.display = "none";
+      input.style.display = "inline-block";
+      input.focus();
+      if (input.select) input.select();
+      editing[field] = true;
+      if (saveBtn) saveBtn.style.display = "inline-block";
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") save();
+      if (e.key === "Escape") cancel();
+    });
+
+    input.addEventListener("blur", () => editing[field] && save());
+  });
+
+  async function save() {
+    const fd = new FormData();
+    fd.append("media_type", mediaType);
+    fd.append("filename", row.dataset.filename);
+
+    fields.forEach(field => {
+      const input = row.querySelector(`.${field}-input`);
+      if (field === "category") {
+        fd.append("category_id", input.value);
+      } else {
+        fd.append(field, input.value);
+      }
+    });
+
+    const res = await fetch("/admin/media/update", {
+      method: "POST",
+      body: fd
+    });
+    const data = await res.json();
+    alert(data.message || "Сохранено!");
+
+    if (data.success) {
+      fields.forEach(field => {
+        const span = row.querySelector(`.${field}`);
+        const input = row.querySelector(`.${field}-input`);
+        if (field === "category") {
+          span.textContent = input.options[input.selectedIndex].text;
+        } else {
+          span.textContent = input.value;
+        }
+      });
+    }
+
+    cancel();
+  }
+
+  function cancel() {
+    fields.forEach(field => {
+      const span = row.querySelector(`.${field}`);
+      const input = row.querySelector(`.${field}-input`);
+      span.style.display = "inline";
+      input.style.display = "none";
+      editing[field] = false;
+    });
+    if (saveBtn) saveBtn.style.display = "none";
+  }
+}
+
+// Инициализация для всех видео
+document.querySelectorAll(".video-row")
+  .forEach(row => addInlineMediaEdit(row, ["title", "category"], "video"));
+</script>
 
 
 
