@@ -132,7 +132,8 @@ def list_media(sync_spaces=True):
             "price": a.price,
             "thumb_url": a.thumb_url,
             "category_id": a.category_id,
-            "category_name": categories_map.get(a.category_id, "Без категории")
+            "category_name": categories_map.get(a.category_id, "Без категории"),
+            'original_name': a.original_name,
         })
 
     for v in db_videos.values():
@@ -141,7 +142,8 @@ def list_media(sync_spaces=True):
             "url": v.url,
             "title": v.title,
             "category_id": v.category_id,
-            "category_name": categories_map.get(v.category_id, "Без категории")
+            "category_name": categories_map.get(v.category_id, "Без категории"),
+            'original_name': v.original_name,
         })
 
     print(f"Найдено аудио: {len(audios)}, видео: {len(videos)}")

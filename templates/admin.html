@@ -66,6 +66,10 @@
             <div class="drop-area" id="drop-area">Перетащите сюда файл или нажмите</div>
             <input type="file" name="file" id="file-input" accept="audio/*,video/*" required style="display:none;" />
           </div>
+          <div class="two">
+  <label>Оригинальное имя</label>
+  <input type="text" name="original_name" placeholder="Имя файла" />
+</div>
 
           <div class="two" id="artist_wrap">
             <label>Артист</label>
@@ -126,6 +130,7 @@
 <tr class="audio-row" data-filename="{{ c.filename }}">
   <td>
     <strong>{{ c.filename }}</strong>
+     <small>Оригинальное имя: {{ c.original_name }}</small>
     <br>
     <small><a href="{{ c.url }}" target="_blank">{{ c.url|replace('https://','') }}</a></small>
   </td>
@@ -183,7 +188,9 @@
     <tbody>
       {% for v in videos %}
       <tr class="video-row" data-filename="{{ v.filename }}">
-        <td>{{ v.filename }}<br><small><a href="{{ v.url }}" target="_blank">{{ v.url|replace('https://','') }}</a></small></td>
+        <td>{{ v.filename }}<br>
+           <small>Оригинальное имя: {{ c.original_name }}</small>
+          <small><a href="{{ v.url }}" target="_blank">{{ v.url|replace('https://','') }}</a></small></td>
 
         <!-- Название видео -->
         <td>

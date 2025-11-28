@@ -381,6 +381,28 @@ footer .footer-brand {
   transform: scale(0.98);
 }
 
+.progress-container {
+  width: 100%;
+  height: 6px;
+  background: #ccc;
+  border-radius: 3px;
+  margin-top: 5px;
+  cursor: pointer;
+}
+.progress-bar {
+  width: 0%;
+  height: 100%;
+  background: #4caf50;
+  border-radius: 3px;
+}
+
+.equalizer {
+  display: block;
+  margin-top: 8px;
+  background: #000;
+}
+
+
 /* Мелкая адаптация */
 @media (max-width: 576px) {
   .choose-country-btn img { width: 48px; }
@@ -456,49 +478,65 @@ footer .footer-brand {
 
 
   <section class="category" data-country="{{ category.name|lower }}" style="display:none;">
-    <h2>{{ category.id }}</h2>
+    <h2>{{ category.name }}</h2>
 
-{% if category.audios %}
-<div class="audio-list">
-  {% for a in category.audios %}
-  <div class="card" data-filename="{{ a.filename }}">
-    {% if a.thumb_url %}
-    <img src="{{ a.thumb_url }}" alt="{{ a.filename }}">
-    {% endif %}
-    <div class="artist">{{ a.artist }}</div>
-    <div class="filename">{{ a.filename }}</div>
-    {% if a.genre %}
-    <div class="genre">{{ a.genre }}</div>
-    {% endif %}
-    <audio src="{{ a.url }}" preload="metadata" class="audio-player"></audio>
+ <!-- АУДИО -->
+    {% if category.audios %}
+    <div class="audio-list">
+      {% for a in category.audios %}
+      <div class="card" data-filename="{{ a.original_name if a.original_name else a.filename }}">
+        {% if a.thumb_url %}
+        <img src="{{ a.thumb_url }}" alt="{{ a.filename }}">
+        {% endif %}
+        <div class="artist">{{ a.artist or 'Unknown' }}</div>
+        <div class="filename">{{ a.original_name or a.filename }}</div>
+        {% if a.genre %}
+        <div class="genre">{{ a.genre }}</div>
+        {% endif %}
+        <audio src="{{ a.url }}" preload="metadata" class="audio-player"></audio>
+
+         <div class="controls">
     <button class="play-btn">▶ Play</button>
-    <button class="buy-btn" data-filename="{{ a.filename }}">
-      💳 Купить ${{ (a.price/100)|round(2) }}
-    </button>
+    <div class="time-display">00:00 / 00:00</div>
   </div>
-  {% endfor %}
+  <div class="progress-container">
+    <div class="progress-bar"></div>
+  </div>
+  <canvas class="equalizer" width="200" height="40"></canvas>
+           <button class="buy-btn" data-filename="{{ a.filename }}">
+          💳 Купить ${{ (a.price/100)|round(2) }}
+        </button>
 </div>
-{% endif %}
 
-{% if category.videos %}
-<div class="video-list" style="margin-top:20px;">
-  {% for v in category.videos %}
-  <div class="card video-card">
-    <video src="{{ v.url }}" controls></video>
-    <div class="filename">{{ v.filename }}</div>
-    {% if v.title %}
-    <div class="artist">{{ v.title }}</div>
+
+
+
+
+
+
+      </div>
+      {% endfor %}
+    </div>
     {% endif %}
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
 
+    <!-- ВИДЕО -->
+    {% if category.videos %}
+    <div class="video-list" style="margin-top:20px;">
+      {% for v in category.videos %}
+      <div class="card video-card" data-filename="{{ v.original_name or v.filename }}">
+        <video src="{{ v.url }}" controls></video>
+        <div class="filename">{{ v.original_name or v.filename }}</div>
+        {% if v.title %}
+        <div class="artist">{{ v.title }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
 
   </section>
   {% endfor %}
 </main>
-
 <!-- Футер -->
 <footer>
   <a onclick="openLegal('about')">Hakkımızda</a>
@@ -507,7 +545,16 @@ footer .footer-brand {
   <a onclick="openLegal('distance')">Mesafeli Satış</a>
 
   <div class="footer-brand">
-    <img src="{{ url_for('static', filename='logo_band_colored@1X.png') }}" alt="iyzico" height="28">
+   <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png"
+       alt="Visa" height="24">
+
+  <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
+       alt="MasterCard" height="24">
+
+    <img src="https://raw.githubusercontent.com/ozgurrturk/troy-logo/master/troy-logo.png"
+     alt="Troy" height="24">
+
+
   </div>
 </footer>
 
@@ -524,57 +571,26 @@ footer .footer-brand {
 </div>
 <div id="legal-delivery" class="legal-modal">
   <div class="legal-content">
-    <h2>Teslimat ve İade Şartları</h2>
-    <p><b>Dijital Ürün Teslimatı</b><br>
-      – Ödeme başarıyla tamamlandıktan sonra ürünün indirme bağlantısı otomatik olarak e-posta adresinize gönderilir.<br>
-      – Ürün tamamen dijital olarak teslim edilir, fiziksel bir gönderim yoktur.
-    </p>
-    <p><b>İade Koşulları</b><br>
-      – Dijital ürünlerde indirme bağlantısı sağlandıktan sonra iade yapılamaz.<br>
-      – Dosya bozuk veya indirilemez durumda ise bizimle iletişime geçebilirsiniz:
-      <a href="mailto:nesko168@icloud.com">nesko168@icloud.com</a> veya
-      <a href="mailto:mozjfima@gmail.com">mozjfima@gmail.com</a>.
-      Yeni indirme bağlantısı ücretsiz olarak sağlanır.
-    </p>
+    <p>place for something </p>
     <button class="legal-close" onclick="closeLegal('delivery')">Kapat</button>
   </div>
 </div>
 
 <div id="legal-privacy" class="legal-modal">
   <div class="legal-content">
-    <h2>Gizlilik Sözleşmesi</h2>
-    <p><b>Toplanan Bilgiler:</b><br>
-      – E-posta adresi<br>
-      – İsim (gerektiğinde)<br>
-      – Ödeme bilgileri (iyzico tarafından işlenir, tarafımızda saklanmaz)
-    </p>
-    <p><b>Bilgilerin Kullanım Amaçları:</b><br>
-      – Dijital ürünün teslim edilmesi<br>
-      – Satın alma onayı ve bilgilendirme<br>
-      – Teknik destek sağlanması (Destek e-posta:
-      <a href="mailto:nesko168@icloud.com">nesko168@icloud.com</a>)
-    </p>
-    <p>Kişisel verileriniz üçüncü kişilerle paylaşılmaz. Ödeme işlemleri iyzico tarafından güvenli şekilde işlenir.</p>
+        <p>place for something </p>
+
+
+
     <button class="legal-close" onclick="closeLegal('privacy')">Kapat</button>
   </div>
 </div>
-
+<!-- footer modal -->
 <div id="legal-distance" class="legal-modal">
   <div class="legal-content">
-    <h2>Mesafeli Satış Sözleşmesi</h2>
-    <p><b>Ürün Türü:</b> Dijital müzik içeriği (MP3 / WAV).</p>
-    <p><b>Hizmetin İfası:</b><br>
-      Ödeme tamamlandıktan sonra dijital ürünün indirme bağlantısı e-posta ile gönderilir.
-      Bu aşamada hizmet tamamen ifa edilmiş sayılır.
-    </p>
-    <p><b>Cayma Hakkı:</b><br>
-      6502 sayılı kanun gereğince, dijital içerik sunulan hizmetlerde; tüketici ürünü teslim aldıktan sonra cayma hakkı kullanamaz.
-      Bu nedenle indirme bağlantısı gönderildikten sonra iade mümkün değildir.
-    </p>
-    <p><b>Tarafların Yükümlülükleri:</b><br>
-      Satıcı; doğru ve çalışır durumda dijital dosyayı sağlamakla yükümlüdür.<br>
-      Alıcı; doğru e-posta bilgisi vermekle ve dijital ürünün niteliğini kabul etmekle yükümlüdür.<br><br>
-      Destek & iletişim:
+
+        <p>place for something </p>
+
       <a href="mailto:mozjfima@gmail.com">mozjfima@gmail.com</a> /
       <a href="mailto:nesko168@icloud.com">nesko168@icloud.com</a>
     </p>
@@ -595,12 +611,13 @@ footer .footer-brand {
     </div>
   </div>
 </div>
+
+
+<!-- footer modal -->
 <div id="legal-about" class="legal-modal">
   <div class="legal-content">
-    <h2>Hakkımızda</h2>
-    <p>Bağımsız bir müzik yapımcısı ve besteciyim. Bu web sitesi üzerinden özgün müzik çalışmalarımı dijital formatta satın alabilirsiniz.</p>
-    <p>Hazırladığım müzikler; video içerikleri, oyunlar, reklamlar, sosyal medya projeleri ve kişisel kullanım için uygundur (seçilen lisansa bağlı olarak).</p>
-    <p>Amacım, projelerinize profesyonel bir ses tasarımı ve kaliteli müzik desteği sağlamaktır. Bu site üzerinden yapılan tüm satışlar dijital ürün kapsamındadır.</p>
+
+
     <button class="legal-close" onclick="closeLegal('about')">Kapat</button>
   </div>
 </div>
@@ -608,17 +625,19 @@ footer .footer-brand {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-
 <script>
+/* ------------------------------
+   ФИЛЬТР КАТЕГОРИЙ (страны)
+   Показывает только выбранную категорию
+--------------------------------*/
 document.addEventListener("DOMContentLoaded", () => {
-  const cats = document.querySelectorAll(".category"); // твои секции
+  const cats = document.querySelectorAll(".category");
   const chooseBtns = document.querySelectorAll(".choose-country-btn");
 
   function showCategory(target) {
-    // если target === 'all' — показываем все (опционально)
     cats.forEach(cat => {
       if (!target) {
-        cat.style.display = ""; // сброс стиля — показываем по умолчанию
+        cat.style.display = "";
       } else if (cat.dataset.country === target) {
         cat.style.display = "block";
       } else {
@@ -626,7 +645,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // подскролить наверх (опционально)
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -636,85 +654,96 @@ document.addEventListener("DOMContentLoaded", () => {
       showCategory(target);
     });
   });
-
-  // Если хочешь, чтобы при открытии модалки сразу центрировать активный элемент,
-  // можно реализовать автоподсветку — но это опция.
 });
 </script>
 
 <script>
+/* ------------------------------
+   ЧАСТИЦЫ НА ФОНЕ
+   Генерирует 40 маленьких светящихся точек
+--------------------------------*/
+const particlesContainer = document.querySelector('.particles');
 
-  // --- Частицы ---
-  const particlesContainer = document.querySelector('.particles');
-  for(let i=0;i<40;i++){
-    const span = document.createElement('span');
-    span.style.top = (Math.random()*100)+'%';
-    span.style.left = (Math.random()*100)+'%';
-    span.style.width = span.style.height = (2+Math.random()*3)+'px';
-    span.style.animationDuration = (3+Math.random()*5)+'s';
-    particlesContainer.appendChild(span);
-  }
+for (let i = 0; i < 40; i++) {
+  const span = document.createElement('span');
+  span.style.top = (Math.random() * 100) + '%';
+  span.style.left = (Math.random() * 100) + '%';
+  span.style.width = span.style.height = (2 + Math.random() * 3) + 'px';
+  span.style.animationDuration = (3 + Math.random() * 5) + 's';
+  particlesContainer.appendChild(span);
+}
+</script>
+  <script>
+/* ------------------------------
+   АУДИО-ПЛЕЕРЫ
+   - Play / Pause
+   - Показывает текущие/общие секунды
+   - Останавливает другие треки
+--------------------------------*/
 
-  // --- Аудио плееры с отображением длительности ---
-  document.querySelectorAll('.card').forEach(card=>{
-    const audio = card.querySelector('audio');
-    const playBtn = card.querySelector('.play-btn');
+function formatTime(sec) {
+  if (isNaN(sec)) return "00:00";
+  const m = Math.floor(sec / 60).toString().padStart(2, '0');
+  const s = Math.floor(sec % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
 
-    // Создаем элемент для времени
-    const timeDisplay = document.createElement('div');
-    timeDisplay.className = 'time-display';
-    timeDisplay.textContent = '00:00 / 00:00';
-    card.appendChild(timeDisplay);
+document.querySelectorAll('.card').forEach(card => {
+  const audio = card.querySelector('audio');
+   if (!audio) return;
+  const playBtn = card.querySelector('.play-btn');
 
-    // Обновление времени
-    audio.addEventListener('loadedmetadata', () => {
-      const total = formatTime(audio.duration);
-      timeDisplay.textContent = `00:00 / ${total}`;
-    });
+  // Блок отображения времени
+  const timeDisplay = document.createElement('div');
+  timeDisplay.className = 'time-display';
+  timeDisplay.textContent = '00:00 / 00:00';
+  card.appendChild(timeDisplay);
 
-    audio.addEventListener('timeupdate', () => {
-      const current = formatTime(audio.currentTime);
-      const total = formatTime(audio.duration);
-      timeDisplay.textContent = `${current} / ${total}`;
-    });
+  audio.addEventListener('loadedmetadata', () => {
+    timeDisplay.textContent = `00:00 / ${formatTime(audio.duration)}`;
+  });
 
-    // Play/pause
-    playBtn.addEventListener('click', () => {
-      // Пауза всех остальных аудио
-      document.querySelectorAll('audio').forEach(a=>{
-        if(a !== audio){
-          a.pause();
-          const otherBtn = a.closest('.card').querySelector('.play-btn');
-          if(otherBtn) otherBtn.textContent='▶ Play';
-        }
-      });
+  audio.addEventListener('timeupdate', () => {
+    timeDisplay.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+  });
 
-      if(audio.paused){
-        audio.play().catch(err=>console.log("Play error:", err));
-        playBtn.textContent='⏸ Pause';
-      } else {
-        audio.pause();
-        playBtn.textContent='▶ Play';
+  playBtn.addEventListener('click', () => {
+    // Останавливаем остальные аудио
+    document.querySelectorAll('audio').forEach(a => {
+      if (a !== audio) {
+        a.pause();
+        const otherBtn = a.closest('.card').querySelector('.play-btn');
+        if (otherBtn) otherBtn.textContent = '▶ Play';
       }
     });
+
+    if (audio.paused) {
+      audio.play().catch(err => console.log("Play error:", err));
+      playBtn.textContent = '⏸ Pause';
+    } else {
+      audio.pause();
+      playBtn.textContent = '▶ Play';
+    }
   });
+});
 
-  function formatTime(sec){
-    if(isNaN(sec)) return "00:00";
-    const m = Math.floor(sec/60).toString().padStart(2,'0');
-    const s = Math.floor(sec%60).toString().padStart(2,'0');
-    return `${m}:${s}`;
-  }
 
-  // --- Buy modal ---
-  document.querySelectorAll('.buy-btn').forEach(btn=>{
-    btn.addEventListener('click', e=>{
-      const filename = btn.dataset.filename;
-      document.getElementById('download-link').href = '/stream/' + filename;
-      document.getElementById('buy-modal').style.display='flex';
-    });
+</script>
+
+
+<script>
+/* ------------------------------
+   BUY MODAL
+   Открывает модальное окно
+   и вставляет ссылку на скачивание
+--------------------------------*/
+document.querySelectorAll('.buy-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const filename = btn.dataset.filename;
+    document.getElementById('download-link').href = '/stream/' + filename;
+    document.getElementById('buy-modal').style.display = 'flex';
   });
-
+});
 </script>
 
 

@@ -79,6 +79,7 @@ def index():
 
             item = {
                 "filename": a.filename,
+                "original_name": a.original_name,
                 "url": a.url or m.get("url"),
                 "artist": a.artist,
                 "genre": a.genre,
@@ -102,6 +103,7 @@ def index():
 
             item = {
                 "filename": v.filename,
+                "original_name": v.original_name,
                 "url": v.url or m.get("url"),
                 "title": v.title,
             }
@@ -312,13 +314,15 @@ def admin():
 
     if request.method == "POST":
         uploaded_file = request.files.get("file")
+
         if not uploaded_file or not uploaded_file.filename:
             flash("⚠️ Не выбран файл!", "error")
             return redirect(url_for("admin"))
 
+        original_name = request.form.get("original_name") or uploaded_file.filename
         media_type = request.form.get("media_type")
         filename_safe = secure_filename(uploaded_file.filename)
-        original_name = uploaded_file.filename  # сохраняем оригинальное имя
+        # сохраняем оригинальное имя
         url = upload_file(uploaded_file, filename_safe)
         if not url:
             flash("❌ Ошибка загрузки в облако!", "error")
