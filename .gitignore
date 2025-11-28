@@ -1,20 +1,10 @@
-# Virtual environment
 venv/
-
-# Python cache
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-
-# Database
 instance/*.db
 instance/database.db
-db.sqlite3
-
-# Environment variables
 *.env
-.env*
+*.config.py
 
-# Config files with secrets
-config.py
