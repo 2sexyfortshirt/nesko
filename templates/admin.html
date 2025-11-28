@@ -189,7 +189,7 @@
       {% for v in videos %}
       <tr class="video-row" data-filename="{{ v.filename }}">
         <td>{{ v.filename }}<br>
-           <small>Оригинальное имя: {{ c.original_name }}</small>
+           <small>Оригинальное имя: {{ v.original_name }}</small>
           <small><a href="{{ v.url }}" target="_blank">{{ v.url|replace('https://','') }}</a></small></td>
 
         <!-- Название видео -->

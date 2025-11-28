@@ -25,11 +25,18 @@ from spaces_service import get_presigned_view_url, upload_file, delete_object, l
 
 app = Flask(__name__)
 
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
+    "DATABASE_URL",
+    f"sqlite:///{os.path.join(app.instance_path, 'database.db')}"
+)
 
+# SSL для Railway Postgres
+db_url = app.config['SQLALCHEMY_DATABASE_URI']
+if db_url.startswith("postgres://") or db_url.startswith("postgresql://"):
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "connect_args": {"sslmode": "require"}
+    }
 
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(app.instance_path, 'database.db')}"
-
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.getenv("FLASK_SECRET", "supersecret_local_change_me")
 
 # ---- Инициализация расширений ----
